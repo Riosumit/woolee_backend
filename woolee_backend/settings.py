@@ -25,7 +25,7 @@ SECRET_KEY = 'django-insecure-gpuma21pshg((v2i45+40$pyieupysf0jc5+&*anf%cg*3l&br
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['woolee-backend-riosumit.vercel.app']
 
 
 # Application definition
