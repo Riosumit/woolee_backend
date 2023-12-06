@@ -130,4 +130,4 @@ STATIC_URL = 'static/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-CORS_ALLOWED_ORIGINS = ['https://woolee-backend-riosumit.vercel.app']
+CORS_ORIGIN_ALLOW_ALL = True
