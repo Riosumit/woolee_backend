@@ -1,15 +1,48 @@
 from django.db import models
 from django.contrib.auth.models import User
+from phonenumber_field.modelfields import PhoneNumberField
+from enum import Enum
 
 class Producer(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     farm_name = models.CharField(max_length=100)
+    phone = PhoneNumberField(blank=True, null=True)
     district = models.CharField(max_length=100)
     state = models. CharField(max_length=100)
     sheep_count = models.PositiveIntegerField()
     
     def __str__(self):
         return self.farm_name
+    
+class Processor(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    factory_name = models.CharField(max_length=100)
+    phone = PhoneNumberField(blank=True, null=True)
+    district = models.CharField(max_length=100)
+    state = models. CharField(max_length=100)
+    labour_count = models.PositiveIntegerField()
+    
+    def __str__(self):
+        return self.factory_name
+    
+class ServiceProvider(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    available_services = models.CharField(max_length=100)
+    service_prices = models.JSONField()
+
+class ServiceRequest(models.Model):
+    producer = models.ForeignKey(User, on_delete=models.CASCADE)
+    service_provider = models.ForeignKey(ServiceProvider, on_delete=models.CASCADE)
+    processing_details = models.TextField(blank=True, null=True)
+    quantity = models.PositiveIntegerField()
+    producer_delivery_address = models.TextField(blank=True, null=True)
+    producer_delivery_date = models.DateField(blank=True, null=True)
+    status = models.CharField(max_length=100)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.producer.username} - {', '.join([tag.value for tag in self.service_types.all()])} Request"
+    
 
 # class WoolBatch(models.Model):
 #     producer = models.ForeignKey(WoolProducer, on_delete=models.CASCADE)

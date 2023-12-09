@@ -7,9 +7,12 @@ from rest_framework import status
 from django.contrib.auth.models import User
 from django.contrib.auth import authenticate, login, logout
 from django.shortcuts import get_object_or_404
+import qrcode
+from django.http import HttpResponse
+from django.views import View
 from rest_framework.authtoken.models import Token
-from .models import Producer
-from .serializers import ProducerSerializer
+from .models import Producer, Processor, ServiceProvider, ServiceRequest
+from .serializers import ProducerSerializer, ProcessorSerializer, ServiceRequestSerializer, ServiceProviderSerializer
 
 class CsrfExemptSessionAuthentication(SessionAuthentication):
     def enforce_csrf(self, request):
@@ -108,3 +111,186 @@ class ProducerView(APIView):
             "message": "Producer deleted successfully",
             "data": None
         })
+
+class ServiceRequestView(APIView):
+    authentication_classes = [CsrfExemptSessionAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, pk=None, format=None):
+        if pk is not None:
+            service_request = get_object_or_404(ServiceRequest, pk=pk)
+            serializer = ServiceRequestSerializer(service_request)
+            return Response({
+                "success": True,
+                "message": "Service Request details",
+                "data": serializer.data
+            })
+        else:
+            service_request = ServiceRequest.objects.all().filter(producer=request.user)
+            serializer = ServiceRequestSerializer(service_request, many=True)
+            return Response({
+                "success": True,
+                "message": "Service Requests",
+                "data": serializer.data
+            })
+
+    def post(self, request, format=None):
+        serializer = ServiceRequestSerializer(data=request.data, context={'request': request})
+        if serializer.is_valid():
+            serializer.save()
+            return Response({
+                "success": True,
+                "message": "Service Request created successfully",
+                "data": serializer.data
+            }, status=status.HTTP_201_CREATED)
+        else:
+            return Response({
+                "success": False,
+                "errors": serializer.errors
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request, pk=None, format=None):
+        service_request = get_object_or_404(ServiceRequest, pk=pk)
+        service_request.delete()
+        return Response({
+            "success": True,
+            "message": "Service Request deleted successfully",
+            "data": None
+        })
+    
+class ProcessorView(APIView):
+    authentication_classes = [CsrfExemptSessionAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, pk=None, format=None):
+        if pk is not None:
+            processor = get_object_or_404(Processor, pk=pk)
+            serializer = ProcessorSerializer(processor)
+            return Response({
+                "success": True,
+                "message": "Processor details",
+                "data": serializer.data
+            })
+        else:
+            processors = Processor.objects.all()
+            serializer = ProcessorSerializer(processors, many=True)
+            return Response({
+                "success": True,
+                "message": "Processors",
+                "data": serializer.data
+            })
+
+    def post(self, request, format=None):
+        serializer = ProcessorSerializer(data=request.data, context={'request': request})
+        if serializer.is_valid():
+            serializer.save()
+            return Response({
+                "success": True,
+                "message": "Processor created successfully",
+                "data": serializer.data
+            }, status=status.HTTP_201_CREATED)
+        else:
+            return Response({
+                "success": False,
+                "errors": serializer.errors
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+    def put(self, request, pk=None, format=None):
+        processor = Processor.objects.get(user=request.user)
+        serializer = ProcessorSerializer(processor, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response({
+                "success": True,
+                "message": "Processor updated successfully",
+                "data": serializer.data
+            })
+        else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request, pk=None, format=None):
+        processor = get_object_or_404(Processor, pk=pk)
+        processor.delete()
+        return Response({
+            "success": True,
+            "message": "Processor deleted successfully",
+            "data": None
+        })
+    
+class ServiceProviderView(APIView):
+    authentication_classes = [CsrfExemptSessionAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, pk=None, format=None):
+        if pk is not None:
+            service_provider = get_object_or_404(ServiceProvider, pk=pk)
+            serializer = ServiceProviderSerializer(service_provider)
+            return Response({
+                "success": True,
+                "message": "Service Provider details",
+                "data": serializer.data
+            })
+        else:
+            service_provider = ServiceProvider.objects.all()
+            serializer = ServiceProviderSerializer(service_provider, many=True)
+            return Response({
+                "success": True,
+                "message": "Service Providers",
+                "data": serializer.data
+            })
+
+    def post(self, request, format=None):
+        serializer = ServiceProviderSerializer(data=request.data, context={'request': request})
+        if serializer.is_valid():
+            serializer.save()
+            return Response({
+                "success": True,
+                "message": "Service Provider created successfully",
+                "data": serializer.data
+            }, status=status.HTTP_201_CREATED)
+        else:
+            return Response({
+                "success": False,
+                "errors": serializer.errors
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+    def put(self, request, pk=None, format=None):
+        service_provider = ServiceProvider.objects.get(user=request.user)
+        serializer = ServiceProviderSerializer(service_provider, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response({
+                "success": True,
+                "message": "Service Provider updated successfully",
+                "data": serializer.data
+            })
+        else:
+            return Response({
+                "success": False,
+                "errors": serializer.errors
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request, pk=None, format=None):
+        service_provider = get_object_or_404(ServiceProvider, pk=pk)
+        service_provider.delete()
+        return Response({
+            "success": True,
+            "message": "Service Provider deleted successfully",
+            "data": None
+        })
+
+class QRCodeView(View):
+    def get(self, request, pk):
+        qr = qrcode.QRCode(
+            version=1,
+            error_correction=qrcode.constants.ERROR_CORRECT_L,
+            box_size=10,
+            border=4,
+        )
+        qr.add_data(pk)
+        qr.make(fit=True)
+
+        img = qr.make_image(fill_color="black", back_color="white")
+        response = HttpResponse(content_type="image/png")
+        img.save(response, "PNG")
+        return response
