@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import User
 from phonenumber_field.modelfields import PhoneNumberField
+import uuid
 from enum import Enum
 
 class Producer(models.Model):
@@ -44,14 +45,36 @@ class ServiceRequest(models.Model):
         return f"{self.producer.username} - {', '.join([tag.value for tag in self.service_types.all()])} Request"
     
 
-# class WoolBatch(models.Model):
-#     producer = models.ForeignKey(WoolProducer, on_delete=models.CASCADE)
-#     qr_code = models.CharField(max_length=50, unique=True)
-#     production_date = models.DateField()
-#     transport_status = models.CharField(max_length=50, default='In Farm')
+class Batch(models.Model):
+    producer = models.ForeignKey(Producer, on_delete=models.CASCADE)
+    quantity = models.PositiveIntegerField(default=0)
+    qr_code = models.CharField(max_length=50, unique=True)
+    production_date = models.DateField()
+    current_location = models.CharField(max_length=50, default='In Farm')
+
+    # Quality parameters
+    thickness = models.DecimalField(max_digits=5, decimal_places=2)
+    color = models.CharField(max_length=50)
+    softness = models.CharField(max_length=50)
+
+    def save(self, *args, **kwargs):
+        if not self.qr_code:
+            self.qr_code = str(uuid.uuid4().hex)[:12].upper()
+
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f"{self.qr_code} - {self.producer.farm_name}"
     
-#     def __str__(self):
-#         return f"{self.qr_code} - {self.producer.farm_name}"
+class Store(models.Model):
+    producer = models.ForeignKey(Producer, on_delete=models.CASCADE)
+    batch = models.OneToOneField(Batch, on_delete=models.CASCADE)
+    price = models.DecimalField(max_digits=12, decimal_places=2)
+    quantity_available = models.PositiveIntegerField(default=0)
+
+    def __str__(self):
+        return f"{self.batch} - Price: {self.price} - Quantity Available: {self.quantity_available}"
+
 
 # class WoolQuality(models.Model):
 #     batch = models.OneToOneField(WoolBatch, on_delete=models.CASCADE)
@@ -67,13 +90,6 @@ class ServiceRequest(models.Model):
     
 #     def __str__(self):
 #         return f"{self.producer.farm_name} - Storage"
-
-# class WoolProcessingService(models.Model):
-#     service_name = models.CharField(max_length=100)
-#     service_type = models.CharField(max_length=50)
-    
-#     def __str__(self):
-#         return self.service_name
 
 # class WoolTransaction(models.Model):
 #     batch = models.ForeignKey(WoolBatch, on_delete=models.CASCADE)

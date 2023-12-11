@@ -2,6 +2,7 @@ from rest_framework.views import APIView
 from rest_framework.decorators import api_view, authentication_classes, permission_classes
 from rest_framework.authentication import SessionAuthentication
 from rest_framework.permissions import IsAuthenticated, BasePermission, AllowAny
+from rest_framework.parsers import FormParser, MultiPartParser
 from rest_framework.response import Response
 from rest_framework import status
 from django.contrib.auth.models import User
@@ -11,8 +12,8 @@ import qrcode
 from django.http import HttpResponse
 from django.views import View
 from rest_framework.authtoken.models import Token
-from .models import Producer, Processor, ServiceProvider, ServiceRequest
-from .serializers import ProducerSerializer, ProcessorSerializer, ServiceRequestSerializer, ServiceProviderSerializer
+from .models import Producer, Processor, ServiceProvider, ServiceRequest, Batch, Store
+from .serializers import ProducerSerializer, ProcessorSerializer, ServiceRequestSerializer, ServiceProviderSerializer, BatchSerializer, StoreSerializer
 
 class CsrfExemptSessionAuthentication(SessionAuthentication):
     def enforce_csrf(self, request):
@@ -279,7 +280,10 @@ class ServiceProviderView(APIView):
             "data": None
         })
 
-class QRCodeView(View):
+class QRCodeView(APIView):
+    authentication_classes = [CsrfExemptSessionAuthentication]
+    permission_classes = [IsAuthenticated]
+
     def get(self, request, pk):
         qr = qrcode.QRCode(
             version=1,
@@ -294,3 +298,149 @@ class QRCodeView(View):
         response = HttpResponse(content_type="image/png")
         img.save(response, "PNG")
         return response
+    
+    def post(self, request, format=None):
+        qr_code=request.data.get('qr_code')
+        if qr_code:
+            qr = qrcode.QRCode(
+                version=1,
+                error_correction=qrcode.constants.ERROR_CORRECT_L,
+                box_size=10,
+                border=4,
+            )
+            qr.add_data(qr_code)
+            qr.make(fit=True)
+
+            img = qr.make_image(fill_color="black", back_color="white")
+            response = HttpResponse(content_type="image/png")
+            img.save(response, "PNG")
+            return response
+        else:
+            return Response({
+                "success": False,
+                "errors": "qr_code is required"
+            }, status=status.HTTP_400_BAD_REQUEST)
+    
+class BatchView(APIView):
+    authentication_classes = [CsrfExemptSessionAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, pk=None, format=None):
+        if pk is not None:
+            batch = get_object_or_404(Batch, pk=pk)
+            serializer = BatchSerializer(batch)
+            return Response({
+                "success": True,
+                "message": "Batch details",
+                "data": serializer.data
+            })
+        else:
+            batches = Batch.objects.all()
+            serializer = BatchSerializer(batches, many=True)
+            return Response({
+                "success": True,
+                "message": "Batches",
+                "data": serializer.data
+            })
+
+    def post(self, request, format=None):
+        serializer = BatchSerializer(data=request.data, context={'request': request})
+        if serializer.is_valid():
+            batch = serializer.save()
+            return Response({
+                "success": True,
+                "message": "Batch created successfully",
+                "data": serializer.data
+            }, status=status.HTTP_201_CREATED)
+        else:
+            return Response({
+                "success": False,
+                "errors": serializer.errors
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+    def put(self, request, pk=None, format=None):
+        batch = Batch.objects.get(pk=pk)
+        serializer = BatchSerializer(batch, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response({
+                "success": True,
+                "message": "Batch updated successfully",
+                "data": serializer.data
+            })
+        else:
+            return Response({
+                "success": False,
+                "errors": serializer.errors
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request, pk=None, format=None):
+        batch = get_object_or_404(Batch, pk=pk)
+        batch.delete()
+        return Response({
+            "success": True,
+            "message": "Batch deleted successfully",
+            "data": None
+        })
+    
+class StoreView(APIView):
+    authentication_classes = [CsrfExemptSessionAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, pk=None, format=None):
+        if pk is not None:
+            store = get_object_or_404(Store, pk=pk)
+            serializer = StoreSerializer(store)
+            return Response({
+                "success": True,
+                "message": "Store details",
+                "data": serializer.data
+            })
+        else:
+            stores = Store.objects.all()
+            serializer = StoreSerializer(stores, many=True)
+            return Response({
+                "success": True,
+                "message": "Stores",
+                "data": serializer.data
+            })
+
+    def post(self, request, format=None):
+        serializer = StoreSerializer(data=request.data, context={'request': request})
+        if serializer.is_valid():
+            store = serializer.save()
+            return Response({
+                "success": True,
+                "message": "Store created successfully",
+                "data": serializer.data
+            }, status=status.HTTP_201_CREATED)
+        else:
+            return Response({
+                "success": False,
+                "errors": serializer.errors
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+    def put(self, request, pk=None, format=None):
+        store = Store.objects.get(pk=pk)
+        serializer = StoreSerializer(store, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response({
+                "success": True,
+                "message": "Store updated successfully",
+                "data": serializer.data
+            })
+        else:
+            return Response({
+                "success": False,
+                "errors": serializer.errors
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request, pk=None, format=None):
+        store = get_object_or_404(Store, pk=pk)
+        store.delete()
+        return Response({
+            "success": True,
+            "message": "Store deleted successfully",
+            "data": None
+        })
