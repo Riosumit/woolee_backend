@@ -9,7 +9,7 @@ class Producer(models.Model):
     farm_name = models.CharField(max_length=100)
     phone = PhoneNumberField(blank=True, null=True)
     pincode = models.CharField(max_length=100, blank=True, null=True)
-    city = models.CharField(max_length=100)
+    district = models.CharField(max_length=100)
     state = models. CharField(max_length=100)
     sheep_count = models.PositiveIntegerField()
     
@@ -21,7 +21,7 @@ class Processor(models.Model):
     factory_name = models.CharField(max_length=100)
     phone = PhoneNumberField(blank=True, null=True)
     pincode = models.CharField(max_length=100, blank=True, null=True)
-    city = models.CharField(max_length=100)
+    district = models.CharField(max_length=100)
     state = models. CharField(max_length=100)
     labour_count = models.PositiveIntegerField()
     
