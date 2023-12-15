@@ -1,7 +1,7 @@
 from rest_framework.views import APIView
 from rest_framework import generics
 from rest_framework.decorators import api_view, authentication_classes, permission_classes
-from rest_framework.authentication import SessionAuthentication
+from rest_framework.authentication import SessionAuthentication, TokenAuthentication
 from rest_framework.permissions import IsAuthenticated, BasePermission, AllowAny
 from rest_framework.parsers import FormParser, MultiPartParser
 from rest_framework.response import Response
@@ -16,9 +16,9 @@ from rest_framework.authtoken.models import Token
 from .models import Producer, Processor, ServiceProvider, ServiceRequest, Batch, Store
 from .serializers import ProducerSerializer, ProcessorSerializer, ServiceRequestSerializer, ServiceProviderSerializer, BatchSerializer, StoreSerializer, StoreDetailSerializer
 
-class CsrfExemptSessionAuthentication(SessionAuthentication):
-    def enforce_csrf(self, request):
-        return 
+# class CsrfExemptSessionAuthentication(SessionAuthentication):
+#     def enforce_csrf(self, request):
+#         return 
     
 # class IsAuthenticated(BasePermission):
 #     def authenticate(self, request):
@@ -33,7 +33,6 @@ class CsrfExemptSessionAuthentication(SessionAuthentication):
 #         return 'No-Credentials'
     
 class RegisterView(APIView):
-    authentication_classes = [CsrfExemptSessionAuthentication]
     def post(self, request):
         username = request.data.get('username')
         password = request.data.get('password')
@@ -46,25 +45,27 @@ class RegisterView(APIView):
             return Response({'error': 'Username is already taken'}, status=status.HTTP_400_BAD_REQUEST)
 
         user = User.objects.create_user(username=email, password=password, first_name=username)
-        login(request, user)
-        return Response({'message': 'User registered successfully'}, status=status.HTTP_201_CREATED)
+        token, created = Token.objects.get_or_create(user=user)
+        response_data = {'message': 'User registered successfully', 'token': token.key}
+        return Response(response_data, status=status.HTTP_201_CREATED)
 
 class LoginView(APIView):
-    authentication_classes = [CsrfExemptSessionAuthentication]
     def post(self, request):
         email = request.data.get('email')
         password = request.data.get('password')
-
         user = authenticate(request, username=email, password=password)
-
         if user:
             login(request, user)
-            return Response({'message': 'Login successful'}, status=status.HTTP_200_OK)
+            token, created = Token.objects.get_or_create(user=user)
+            response_data = {'message': 'Login successful', 'token': token.key}
+            return Response(response_data, status=status.HTTP_200_OK)
         else:
             return Response({'error': 'Invalid credentials'}, status=status.HTTP_401_UNAUTHORIZED)
         
 class IsLoginView(APIView):
-    authentication_classes = [CsrfExemptSessionAuthentication]
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+
     def get(self, request):
         if request.user:
             return Response({
@@ -78,14 +79,16 @@ class IsLoginView(APIView):
             })
         
 class LogoutView(APIView):
+    authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated]
+    
     def get(self, request):
         logout(request)
         return Response({'success': 'Logout successful'}, status=status.HTTP_200_OK)
     
 class ProducerView(APIView):
-    # authentication_classes = [CsrfExemptSessionAuthentication]
-    # permission_classes = [IsAuthenticated]
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
 
     def get(self, request, pk=None, format=None):
         if pk is not None:
@@ -144,7 +147,7 @@ class ProducerView(APIView):
         })
 
 class ServiceRequestView(APIView):
-    authentication_classes = [CsrfExemptSessionAuthentication]
+    authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated]
 
     def get(self, request, pk=None, format=None):
@@ -190,7 +193,7 @@ class ServiceRequestView(APIView):
         })
     
 class ProcessorView(APIView):
-    authentication_classes = [CsrfExemptSessionAuthentication]
+    authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated]
 
     def get(self, request, pk=None, format=None):
@@ -249,7 +252,7 @@ class ProcessorView(APIView):
         })
     
 class ServiceProviderView(APIView):
-    authentication_classes = [CsrfExemptSessionAuthentication]
+    authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated]
 
     def get(self, request, pk=None, format=None):
@@ -311,7 +314,7 @@ class ServiceProviderView(APIView):
         })
 
 class QRCodeView(APIView):
-    authentication_classes = [CsrfExemptSessionAuthentication]
+    authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated]
 
     def get(self, request, pk):
@@ -352,7 +355,7 @@ class QRCodeView(APIView):
             }, status=status.HTTP_400_BAD_REQUEST)
     
 class BatchView(APIView):
-    authentication_classes = [CsrfExemptSessionAuthentication]
+    authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated]
 
     def get(self, request, pk=None, format=None):
@@ -427,7 +430,7 @@ class BatchSearchView(generics.ListAPIView):
         return queryset
     
 class StoreView(APIView):
-    authentication_classes = [CsrfExemptSessionAuthentication]
+    authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated]
 
     def get(self, request, pk=None, format=None):
