@@ -1,4 +1,5 @@
 from rest_framework.views import APIView
+from rest_framework import generics
 from rest_framework.decorators import api_view, authentication_classes, permission_classes
 from rest_framework.authentication import SessionAuthentication
 from rest_framework.permissions import IsAuthenticated, BasePermission, AllowAny
@@ -13,13 +14,14 @@ from django.http import HttpResponse
 from django.views import View
 from rest_framework.authtoken.models import Token
 from .models import Producer, Processor, ServiceProvider, ServiceRequest, Batch, Store
-from .serializers import ProducerSerializer, ProcessorSerializer, ServiceRequestSerializer, ServiceProviderSerializer, BatchSerializer, StoreSerializer
+from .serializers import ProducerSerializer, ProcessorSerializer, ServiceRequestSerializer, ServiceProviderSerializer, BatchSerializer, StoreSerializer, StoreDetailSerializer
 
 class CsrfExemptSessionAuthentication(SessionAuthentication):
     def enforce_csrf(self, request):
         return 
     
 class RegisterView(APIView):
+    authentication_classes = [CsrfExemptSessionAuthentication]
     def post(self, request):
         username = request.data.get('username')
         password = request.data.get('password')
@@ -32,10 +34,11 @@ class RegisterView(APIView):
             return Response({'error': 'Username is already taken'}, status=status.HTTP_400_BAD_REQUEST)
 
         user = User.objects.create_user(username=email, password=password, first_name=username)
-
+        login(request, user)
         return Response({'message': 'User registered successfully'}, status=status.HTTP_201_CREATED)
 
 class LoginView(APIView):
+    authentication_classes = [CsrfExemptSessionAuthentication]
     def post(self, request):
         email = request.data.get('email')
         password = request.data.get('password')
@@ -47,6 +50,19 @@ class LoginView(APIView):
             return Response({'message': 'Login successful'}, status=status.HTTP_200_OK)
         else:
             return Response({'error': 'Invalid credentials'}, status=status.HTTP_401_UNAUTHORIZED)
+        
+class IsLoginView(APIView):
+    def get(self, request):
+        if request.user:
+            return Response({
+                "success": True,
+                "message": "Loggedin"
+            })
+        else:
+            return Response({
+                "success": False,
+                "message": "Not Loggedin"
+            })
         
 class LogoutView(APIView):
     permission_classes = [IsAuthenticated]
@@ -383,6 +399,19 @@ class BatchView(APIView):
             "data": None
         })
     
+class BatchSearchView(generics.ListAPIView):
+    serializer_class = BatchSerializer
+    def get_queryset(self):
+        batch_type = self.request.query_params.get('type', None)
+        location = self.request.query_params.get('location', None)
+        producer = Producer.objects.get(user=self.request.user)
+        queryset = Batch.objects.filter(producer=producer)
+        if batch_type:
+            queryset = queryset.filter(type__icontains=batch_type)
+        if location:
+            queryset = queryset.filter(current_location__icontains=location)
+        return queryset
+    
 class StoreView(APIView):
     authentication_classes = [CsrfExemptSessionAuthentication]
     permission_classes = [IsAuthenticated]
@@ -390,7 +419,7 @@ class StoreView(APIView):
     def get(self, request, pk=None, format=None):
         if pk is not None:
             store = get_object_or_404(Store, pk=pk)
-            serializer = StoreSerializer(store)
+            serializer = StoreDetailSerializer(store)
             return Response({
                 "success": True,
                 "message": "Store details",
@@ -398,7 +427,7 @@ class StoreView(APIView):
             })
         else:
             stores = Store.objects.all()
-            serializer = StoreSerializer(stores, many=True)
+            serializer = StoreDetailSerializer(stores, many=True)
             return Response({
                 "success": True,
                 "message": "Stores",
@@ -444,3 +473,10 @@ class StoreView(APIView):
             "message": "Store deleted successfully",
             "data": None
         })
+    
+class MyStoreView(generics.ListAPIView):
+    serializer_class = StoreSerializer
+    def get_queryset(self):
+        producer = Producer.objects.get(user=self.request.user)
+        queryset = Store.objects.filter(producer=producer)
+        return queryset

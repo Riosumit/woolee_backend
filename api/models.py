@@ -8,7 +8,8 @@ class Producer(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     farm_name = models.CharField(max_length=100)
     phone = PhoneNumberField(blank=True, null=True)
-    district = models.CharField(max_length=100)
+    pincode = models.CharField(max_length=100, blank=True, null=True)
+    city = models.CharField(max_length=100)
     state = models. CharField(max_length=100)
     sheep_count = models.PositiveIntegerField()
     
@@ -19,7 +20,8 @@ class Processor(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     factory_name = models.CharField(max_length=100)
     phone = PhoneNumberField(blank=True, null=True)
-    district = models.CharField(max_length=100)
+    pincode = models.CharField(max_length=100, blank=True, null=True)
+    city = models.CharField(max_length=100)
     state = models. CharField(max_length=100)
     labour_count = models.PositiveIntegerField()
     
@@ -43,10 +45,22 @@ class ServiceRequest(models.Model):
 
     def __str__(self):
         return f"{self.producer.username} - {', '.join([tag.value for tag in self.service_types.all()])} Request"
-    
+
+# class Shop(models.Model):
+#     owner = models.OneToOneField(User, on_delete=models.CASCADE)
+#     name = models.CharField(max_length=255)
+#     account_holder_name = models.CharField(max_length=255)
+#     account_number = models.CharField(max_length=20)
+#     bank_name = models.CharField(max_length=255)
+#     branch_name = models.CharField(max_length=255)
+#     ifsc_code = models.CharField(max_length=20)
+
+#     def __str__(self):
+#         return self.name   
 
 class Batch(models.Model):
     producer = models.ForeignKey(Producer, on_delete=models.CASCADE)
+    type = models.CharField(max_length=100, default="raw wool")
     quantity = models.PositiveIntegerField(default=0)
     qr_code = models.CharField(max_length=50, unique=True)
     production_date = models.DateField()

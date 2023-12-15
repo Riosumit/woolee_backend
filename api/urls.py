@@ -1,9 +1,10 @@
 from django.urls import path
-from .views import ProducerView, LoginView, RegisterView, LogoutView, QRCodeView, ProcessorView, ServiceProviderView, ServiceRequestView, BatchView, StoreView
+from .views import ProducerView, LoginView, RegisterView, IsLoginView, LogoutView, QRCodeView, ProcessorView, ServiceProviderView, ServiceRequestView, BatchView, BatchSearchView, StoreView, MyStoreView
 
 urlpatterns = [
     path('register', RegisterView.as_view(), name='regiser'),
     path('login', LoginView.as_view(), name='login'),
+    path('islogin', IsLoginView.as_view(), name='islogin'),
     path('logout', LogoutView.as_view(), name='logout'),
     path('producers', ProducerView.as_view(), name='producer_list'),
     path('producer/<int:pk>', ProducerView.as_view(), name='producer_detail'),
@@ -15,7 +16,9 @@ urlpatterns = [
     path('service_provider/<int:pk>', ServiceProviderView.as_view(), name='service_provider_detail'),
     path('batches', BatchView.as_view(), name='batch_list'),
     path('batch/<int:pk>', BatchView.as_view(), name='batch_detail'),
+    path('batch/search', BatchSearchView.as_view(), name='batch_search'),
     path('stores', StoreView.as_view(), name='store_list'),
+    path('mystore', MyStoreView.as_view(), name='my_store_list'),
     path('store/<int:pk>', StoreView.as_view(), name='store_detail'),
     path('qr_code', QRCodeView.as_view(), name='qr_code'),
     path('qrcode/<int:pk>', QRCodeView.as_view(), name='qrcode'),

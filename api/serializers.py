@@ -72,6 +72,7 @@ class BatchSerializer(serializers.ModelSerializer):
         # return Batch.objects.create(**validated_data)
 
     def update(self, instance, validated_data):
+        instance.type = validated_data.get('type', instance.type)
         instance.production_date = validated_data.get('production_date', instance.production_date)
         instance.current_location = validated_data.get('current_location', instance.current_location)
         instance.thickness = validated_data.get('thickness', instance.thickness)
@@ -105,3 +106,11 @@ class StoreSerializer(serializers.ModelSerializer):
 
         store = Store.objects.create(**store_data)
         return store
+    
+class StoreDetailSerializer(serializers.ModelSerializer):
+    producer = ProducerSerializer()
+    batch = BatchSerializer()
+    class Meta:
+        model = Store
+        fields = ['producer', 'batch', 'price', 'quantity_available']
+        read_only_fields = ['quantity_available', 'producer']
