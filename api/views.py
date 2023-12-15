@@ -2,7 +2,7 @@ from rest_framework.views import APIView
 from rest_framework import generics
 from rest_framework.decorators import api_view, authentication_classes, permission_classes
 from rest_framework.authentication import SessionAuthentication
-from rest_framework.permissions import IsAuthenticated, BasePermission, AllowAny
+from rest_framework.permissions import BasePermission, AllowAny
 from rest_framework.parsers import FormParser, MultiPartParser
 from rest_framework.response import Response
 from rest_framework import status
@@ -19,6 +19,10 @@ from .serializers import ProducerSerializer, ProcessorSerializer, ServiceRequest
 class CsrfExemptSessionAuthentication(SessionAuthentication):
     def enforce_csrf(self, request):
         return 
+    
+class IsAuthenticated(BasePermission):
+    def has_permission(self, request, view):
+        return bool(request.user)
     
 class RegisterView(APIView):
     authentication_classes = [CsrfExemptSessionAuthentication]
