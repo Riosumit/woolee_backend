@@ -2,7 +2,7 @@ from rest_framework.views import APIView
 from rest_framework import generics
 from rest_framework.decorators import api_view, authentication_classes, permission_classes
 from rest_framework.authentication import SessionAuthentication
-from rest_framework.permissions import BasePermission, AllowAny
+from rest_framework.permissions import IsAuthenticated, BasePermission, AllowAny
 from rest_framework.parsers import FormParser, MultiPartParser
 from rest_framework.response import Response
 from rest_framework import status
@@ -20,9 +20,17 @@ class CsrfExemptSessionAuthentication(SessionAuthentication):
     def enforce_csrf(self, request):
         return 
     
-class IsAuthenticated(BasePermission):
-    def has_permission(self, request, view):
-        return bool(request.user)
+# class IsAuthenticated(BasePermission):
+#     def authenticate(self, request):
+#         print(request.user)
+#         if request.user is not None:
+#             # Authentication is successful when request.user is defined
+#             return (request.user, None)
+#         return None
+
+#     def authenticate_header(self, request):
+#         # Return a custom value for the WWW-Authenticate header if needed
+#         return 'No-Credentials'
     
 class RegisterView(APIView):
     authentication_classes = [CsrfExemptSessionAuthentication]
@@ -76,8 +84,8 @@ class LogoutView(APIView):
         return Response({'success': 'Logout successful'}, status=status.HTTP_200_OK)
     
 class ProducerView(APIView):
-    authentication_classes = [CsrfExemptSessionAuthentication]
-    permission_classes = [IsAuthenticated]
+    # authentication_classes = [CsrfExemptSessionAuthentication]
+    # permission_classes = [IsAuthenticated]
 
     def get(self, request, pk=None, format=None):
         if pk is not None:
@@ -98,6 +106,7 @@ class ProducerView(APIView):
             })
 
     def post(self, request, format=None):
+        print(request.user)
         serializer = ProducerSerializer(data=request.data, context={'request': request})
         if serializer.is_valid():
             serializer.save()
