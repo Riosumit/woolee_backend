@@ -52,6 +52,7 @@ class LoginView(APIView):
             return Response({'error': 'Invalid credentials'}, status=status.HTTP_401_UNAUTHORIZED)
         
 class IsLoginView(APIView):
+    authentication_classes = [CsrfExemptSessionAuthentication]
     def get(self, request):
         if request.user:
             return Response({
