@@ -37,6 +37,7 @@ class RegisterView(APIView):
         username = request.data.get('username')
         password = request.data.get('password')
         email = request.data.get('email')
+        role = "user"
 
         if not username or not password or not email:
             return Response({'error': 'email and password are required'}, status=status.HTTP_400_BAD_REQUEST)
@@ -46,7 +47,11 @@ class RegisterView(APIView):
 
         user = User.objects.create_user(username=email, password=password, first_name=username)
         token, created = Token.objects.get_or_create(user=user)
-        response_data = {'message': 'User registered successfully', 'token': token.key}
+        if(Producer.objects.filter(user=user)):
+            role="producer"
+        elif(Processor.objects.filter(user=user)):
+            role="processor"
+        response_data = {'message': 'User registered successfully', 'role': role, 'token': token.key}
         return Response(response_data, status=status.HTTP_201_CREATED)
 
 class LoginView(APIView):
@@ -54,10 +59,15 @@ class LoginView(APIView):
         email = request.data.get('email')
         password = request.data.get('password')
         user = authenticate(request, username=email, password=password)
+        role = "user"
         if user:
             login(request, user)
             token, created = Token.objects.get_or_create(user=user)
-            response_data = {'message': 'Login successful', 'token': token.key}
+            if(Producer.objects.filter(user=user)):
+                role="producer"
+            elif(Processor.objects.filter(user=user)):
+                role="processor"
+            response_data = {'message': 'Login successful', 'role': role, 'token': token.key}
             return Response(response_data, status=status.HTTP_200_OK)
         else:
             return Response({'error': 'Invalid credentials'}, status=status.HTTP_401_UNAUTHORIZED)
@@ -81,7 +91,7 @@ class IsLoginView(APIView):
 class LogoutView(APIView):
     authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated]
-    
+
     def get(self, request):
         logout(request)
         return Response({'success': 'Logout successful'}, status=status.HTTP_200_OK)
