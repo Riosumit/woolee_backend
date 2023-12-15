@@ -14,7 +14,7 @@ from django.http import HttpResponse
 from django.views import View
 from rest_framework.authtoken.models import Token
 from .models import Producer, Processor, ServiceProvider, ServiceRequest, Batch, Store
-from .serializers import ProducerSerializer, ProcessorSerializer, ServiceRequestSerializer, ServiceProviderSerializer, BatchSerializer, StoreSerializer, StoreDetailSerializer
+from .serializers import UserSerializer, ProducerSerializer, ProcessorSerializer, ServiceRequestSerializer, ServiceProviderSerializer, BatchSerializer, StoreSerializer, StoreDetailSerializer
 
 # class CsrfExemptSessionAuthentication(SessionAuthentication):
 #     def enforce_csrf(self, request):
@@ -40,18 +40,21 @@ class RegisterView(APIView):
         role = "user"
 
         if not username or not password or not email:
-            return Response({'error': 'email and password are required'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"success": False, 'error': 'email and password are required'}, status=status.HTTP_400_BAD_REQUEST)
 
         if User.objects.filter(username=email).exists():
-            return Response({'error': 'Username is already taken'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"success": False, 'error': 'Username is already taken'}, status=status.HTTP_400_BAD_REQUEST)
 
         user = User.objects.create_user(username=email, password=password, first_name=username)
         token, created = Token.objects.get_or_create(user=user)
+        userdata = User.objects.get(username=user)
         if(Producer.objects.filter(user=user)):
             role="producer"
         elif(Processor.objects.filter(user=user)):
             role="processor"
-        response_data = {'message': 'User registered successfully', 'role': role, 'token': token.key}
+        response_data = {"success": True,
+                         'message': 'User registered successfully',
+                         'user': {'role': role, 'name': userdata.first_name, 'email': userdata.username, 'token': token.key}}
         return Response(response_data, status=status.HTTP_201_CREATED)
 
 class LoginView(APIView):
@@ -63,14 +66,17 @@ class LoginView(APIView):
         if user:
             login(request, user)
             token, created = Token.objects.get_or_create(user=user)
+            userdata = User.objects.get(username=user)
             if(Producer.objects.filter(user=user)):
                 role="producer"
             elif(Processor.objects.filter(user=user)):
                 role="processor"
-            response_data = {'message': 'Login successful', 'role': role, 'token': token.key}
+            response_data = {"success": True, 
+                             'message': 'Login successful', 
+                             'user': {'role': role, 'name': userdata.first_name, 'email': userdata.username, 'token': token.key}}
             return Response(response_data, status=status.HTTP_200_OK)
         else:
-            return Response({'error': 'Invalid credentials'}, status=status.HTTP_401_UNAUTHORIZED)
+            return Response({"success": False, 'error': 'Invalid credentials'}, status=status.HTTP_401_UNAUTHORIZED)
         
 class IsLoginView(APIView):
     authentication_classes = [TokenAuthentication]
