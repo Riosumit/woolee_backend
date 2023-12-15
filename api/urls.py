@@ -1,11 +1,12 @@
 from django.urls import path
-from .views import ProducerView, LoginView, RegisterView, IsLoginView, LogoutView, QRCodeView, ProcessorView, ServiceProviderView, ServiceRequestView, BatchView, BatchSearchView, StoreView, MyStoreView
+from .views import ProducerView, ProducerProfileView, LoginView, RegisterView, IsLoginView, LogoutView, QRCodeView, ProcessorView, ServiceProviderView, ServiceRequestView, BatchView, BatchSearchView, StoreView, MyStoreView
 
 urlpatterns = [
     path('register', RegisterView.as_view(), name='regiser'),
     path('login', LoginView.as_view(), name='login'),
     path('islogin', IsLoginView.as_view(), name='islogin'),
     path('logout', LogoutView.as_view(), name='logout'),
+    path('profile', ProducerProfileView.as_view(), name='producer_profile'),
     path('producers', ProducerView.as_view(), name='producer_list'),
     path('producer/<int:pk>', ProducerView.as_view(), name='producer_detail'),
     path('service_requests', ServiceRequestView.as_view(), name='service_request_list'),

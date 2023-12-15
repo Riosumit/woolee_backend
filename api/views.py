@@ -14,7 +14,7 @@ from django.http import HttpResponse
 from django.views import View
 from rest_framework.authtoken.models import Token
 from .models import Producer, Processor, ServiceProvider, ServiceRequest, Batch, Store
-from .serializers import UserSerializer, ProducerSerializer, ProcessorSerializer, ServiceRequestSerializer, ServiceProviderSerializer, BatchSerializer, StoreSerializer, StoreDetailSerializer
+from .serializers import UserSerializer, ProducerSerializer, ProducerProfileSerializer, ProcessorSerializer, ServiceRequestSerializer, ServiceProviderSerializer, BatchSerializer, StoreSerializer, StoreDetailSerializer
 
 # class CsrfExemptSessionAuthentication(SessionAuthentication):
 #     def enforce_csrf(self, request):
@@ -161,6 +161,24 @@ class ProducerView(APIView):
             "message": "Producer deleted successfully",
             "data": None
         })
+
+class ProducerProfileView(APIView):
+    def get(self, request, *args, **kwargs):
+        producer_profile = Producer.objects.get(user=request.user)
+        serializer = ProducerProfileSerializer(producer_profile)
+        inventory_count = Batch.objects.filter(producer=producer_profile).count()
+        forsale_count = Store.objects.filter(producer=producer_profile).count()
+        return Response({"details": serializer.data, "inventory_count": inventory_count, "forsale_count": forsale_count}, status=status.HTTP_200_OK)
+
+    def put(self, request, *args, **kwargs):
+        producer_profile = Producer.objects.get(user=request.user)
+        serializer = ProducerProfileSerializer(producer_profile, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class ServiceRequestView(APIView):
     authentication_classes = [TokenAuthentication]

@@ -10,7 +10,7 @@ class UserSerializer(serializers.ModelSerializer):
 class ProducerSerializer(serializers.ModelSerializer):
     class Meta:
         model = Producer
-        fields = ['id', 'farm_name', 'phone', 'district', 'state', 'sheep_count']
+        fields = ['id', 'farm_name', 'phone', 'pincode', 'district', 'state', 'sheep_count']
         read_only_fields = ['user']
 
     def create(self, validated_data):
@@ -18,6 +18,13 @@ class ProducerSerializer(serializers.ModelSerializer):
         user = request.user
         producer = Producer.objects.create(user=user, **validated_data)
         return producer
+
+class ProducerProfileSerializer(serializers.ModelSerializer):
+    user = UserSerializer(read_only=True)
+    class Meta:
+        model = Producer
+        fields = ['id', 'user', 'farm_name', 'phone', 'pincode', 'district', 'state', 'sheep_count']
+        read_only_fields = ['user']
 
 class ServiceRequestSerializer(serializers.ModelSerializer):
     
@@ -35,7 +42,7 @@ class ServiceRequestSerializer(serializers.ModelSerializer):
 class ProcessorSerializer(serializers.ModelSerializer):
     class Meta:
         model = Processor
-        fields = ['id', 'factory_name', 'phone', 'district', 'state', 'labour_count']
+        fields = ['id', 'factory_name', 'phone', 'pincode', 'district', 'state', 'labour_count']
         read_only_fields = ['user']
 
     def create(self, validated_data):
