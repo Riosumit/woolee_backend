@@ -13,8 +13,8 @@ import qrcode
 from django.http import HttpResponse
 from django.views import View
 from rest_framework.authtoken.models import Token
-from .models import Producer, Processor, ServiceProvider, ServiceRequest, Batch, Store
-from .serializers import UserSerializer, ProducerSerializer, ProducerProfileSerializer, ProcessorSerializer, ServiceRequestSerializer, ServiceProviderSerializer, BatchSerializer, StoreSerializer, StoreDetailSerializer
+from .models import Producer, Processor, ServiceProvider, ServiceRequest, Batch, Store, Order
+from .serializers import UserSerializer, ProducerSerializer, ProducerProfileSerializer, ProcessorSerializer, ServiceRequestSerializer, ServiceProviderSerializer, BatchSerializer, StoreSerializer, StoreDetailSerializer, OrderSerializer
 
 # class CsrfExemptSessionAuthentication(SessionAuthentication):
 #     def enforce_csrf(self, request):
@@ -533,3 +533,65 @@ class MyStoreView(generics.ListAPIView):
         producer = Producer.objects.get(user=self.request.user)
         queryset = Store.objects.filter(producer=producer)
         return queryset
+
+class OrderView(APIView):
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, pk=None, format=None):
+        if pk is not None:
+            order = get_object_or_404(Order, pk=pk)
+            serializer = OrderSerializer(order)
+            return Response({
+                "success": True,
+                "message": "Order details",
+                "data": serializer.data
+            })
+        else:
+            orders = Order.objects.all()
+            serializer = OrderSerializer(orders, many=True)
+            return Response({
+                "success": True,
+                "message": "Orders",
+                "data": serializer.data
+            })
+
+    def post(self, request, format=None):
+        serializer = OrderSerializer(data=request.data, context={'request': request})
+        if serializer.is_valid():
+            serializer.save()
+            return Response({
+                "success": True,
+                "message": "Order created successfully",
+                "data": serializer.data
+            }, status=status.HTTP_201_CREATED)
+        else:
+            return Response({
+                "success": False,
+                "errors": serializer.errors
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+    def put(self, request, pk=None, format=None):
+        order = get_object_or_404(Order, pk=pk)
+        serializer = OrderSerializer(order, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response({
+                "success": True,
+                "message": "Order updated successfully",
+                "data": serializer.data
+            })
+        else:
+            return Response({
+                "success": False,
+                "errors": serializer.errors
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request, pk=None, format=None):
+        order = get_object_or_404(Order, pk=pk)
+        order.delete()
+        return Response({
+            "success": True,
+            "message": "Order deleted successfully",
+            "data": None
+        })

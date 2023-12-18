@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Producer, ServiceRequest, ServiceProvider, Processor, Batch, Store
+from .models import Producer, ServiceRequest, ServiceProvider, Processor, Batch, Store, Order
 from django.contrib.auth.models import User
 
 class UserSerializer(serializers.ModelSerializer):
@@ -91,7 +91,7 @@ class BatchSerializer(serializers.ModelSerializer):
 class StoreSerializer(serializers.ModelSerializer):
     class Meta:
         model = Store
-        fields = ['producer', 'batch', 'price', 'quantity_available']
+        fields = ['id', 'producer', 'batch', 'price', 'quantity_available']
         read_only_fields = ['quantity_available', 'producer']
 
     def create(self, validated_data):
@@ -119,5 +119,31 @@ class StoreDetailSerializer(serializers.ModelSerializer):
     batch = BatchSerializer()
     class Meta:
         model = Store
-        fields = ['producer', 'batch', 'price', 'quantity_available']
+        fields = ['id', 'producer', 'batch', 'price', 'quantity_available']
         read_only_fields = ['quantity_available', 'producer']
+
+class OrderSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Order
+        fields = ('__all__')
+        read_only_fields = ['customer', 'order_id', 'total_price']
+
+    def create(self, validated_data):
+        request = self.context.get('request')
+        user = request.user
+        total_price=validated_data["store"].price*validated_data["quantity"]
+        order = Order.objects.create(customer=user, total_price=total_price, **validated_data)
+        return order
+
+    def update(self, instance, validated_data):
+        # instance.customer = validated_data.get('customer', instance.customer)
+        # instance.store = validated_data.get('store', instance.store)
+        instance.quantity = validated_data.get('quantity', instance.quantity)
+        instance.total_price = validated_data.get('total_price', instance.total_price)
+        instance.order_id = validated_data.get('order_id', instance.order_id)
+        instance.address = validated_data.get('address', instance.address)
+        instance.pincode = validated_data.get('pincode', instance.pincode)
+        instance.location = validated_data.get('location', instance.location)
+        instance.ref = validated_data.get('lref', instance.ref)
+        instance.save()
+        return instance
