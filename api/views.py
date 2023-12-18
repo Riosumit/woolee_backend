@@ -163,6 +163,8 @@ class ProducerView(APIView):
         })
 
 class ProducerProfileView(APIView):
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
     def get(self, request, *args, **kwargs):
         producer_profile = Producer.objects.get(user=request.user)
         serializer = ProducerProfileSerializer(producer_profile)
