@@ -595,3 +595,48 @@ class OrderView(APIView):
             "message": "Order deleted successfully",
             "data": None
         })
+    
+class SoldItemView(APIView):
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, pk=None, format=None):
+        if pk is not None:
+
+            order = get_object_or_404(Order, pk=pk, )
+            serializer = OrderDetailSerializer(order)
+            return Response({
+                "success": True,
+                "message": "Order details",
+                "data": serializer.data
+            })
+        else:
+            orders = Order.objects.all()
+            serializer = OrderDetailSerializer(orders, many=True)
+            return Response({
+                "success": True,
+                "message": "Orders",
+                "data": serializer.data
+            })
+        
+class MyOrderView(APIView):
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, pk=None, format=None):
+        if pk is not None:
+            order = get_object_or_404(Order, pk=pk, customer=request.user)
+            serializer = OrderDetailSerializer(order)
+            return Response({
+                "success": True,
+                "message": "Order details",
+                "data": serializer.data
+            })
+        else:
+            orders = Order.objects.all()
+            serializer = OrderDetailSerializer(orders, many=True)
+            return Response({
+                "success": True,
+                "message": "Orders",
+                "data": serializer.data
+            })
