@@ -150,6 +150,7 @@ class OrderSerializer(serializers.ModelSerializer):
     
 class OrderDetailSerializer(serializers.ModelSerializer):
     customer = UserSerializer(read_only=True)
+    store = StoreDetailSerializer(read_only=True)
     class Meta:
         model = Order
         fields = ['id', 'customer', 'store', 'quantity', 'total_price', 'order_id', 'address', 'pincode', 'location', 'ref']
