@@ -14,7 +14,7 @@ from django.http import HttpResponse
 from django.views import View
 from rest_framework.authtoken.models import Token
 from .models import Producer, Processor, ServiceProvider, ServiceRequest, Batch, Store, Order
-from .serializers import UserSerializer, ProducerSerializer, ProducerProfileSerializer, ProcessorSerializer, ServiceRequestSerializer, ServiceProviderSerializer, BatchSerializer, StoreSerializer, StoreDetailSerializer, OrderSerializer
+from .serializers import UserSerializer, ProducerSerializer, ProducerProfileSerializer, ProcessorSerializer, ServiceRequestSerializer, ServiceProviderSerializer, BatchSerializer, StoreSerializer, StoreDetailSerializer, OrderSerializer, OrderDetailSerializer
 
 # class CsrfExemptSessionAuthentication(SessionAuthentication):
 #     def enforce_csrf(self, request):
@@ -541,7 +541,7 @@ class OrderView(APIView):
     def get(self, request, pk=None, format=None):
         if pk is not None:
             order = get_object_or_404(Order, pk=pk)
-            serializer = OrderSerializer(order)
+            serializer = OrderDetailSerializer(order)
             return Response({
                 "success": True,
                 "message": "Order details",
@@ -549,7 +549,7 @@ class OrderView(APIView):
             })
         else:
             orders = Order.objects.all()
-            serializer = OrderSerializer(orders, many=True)
+            serializer = OrderDetailSerializer(orders, many=True)
             return Response({
                 "success": True,
                 "message": "Orders",
