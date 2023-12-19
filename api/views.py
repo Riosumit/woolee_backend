@@ -13,8 +13,8 @@ import qrcode
 from django.http import HttpResponse
 from django.views import View
 from rest_framework.authtoken.models import Token
-from .models import Producer, Processor, ServiceProvider, ServiceRequest, Batch, Store, Order
-from .serializers import UserSerializer, ProducerSerializer, ProducerProfileSerializer, ProcessorSerializer, ServiceRequestSerializer, ServiceProviderSerializer, BatchSerializer, StoreSerializer, StoreDetailSerializer, OrderSerializer, OrderDetailSerializer
+from .models import Producer, Processor, Service, ServiceRequest, Batch, Store, Order
+from .serializers import UserSerializer, ProducerSerializer, ProducerProfileSerializer, ProcessorProfileSerializer , ProcessorSerializer, ServiceSerializer, ServiceDetailSerializer, ServiceRequestSerializer, BatchSerializer, StoreSerializer, StoreDetailSerializer, OrderSerializer, OrderDetailSerializer
 
 # class CsrfExemptSessionAuthentication(SessionAuthentication):
 #     def enforce_csrf(self, request):
@@ -168,8 +168,28 @@ class ProducerProfileView(APIView):
     def get(self, request, *args, **kwargs):
         producer_profile = Producer.objects.get(user=request.user)
         serializer = ProducerProfileSerializer(producer_profile)
-        inventory_count = Batch.objects.filter(producer=producer_profile).count()
-        forsale_count = Store.objects.filter(producer=producer_profile).count()
+        inventory_count = Batch.objects.filter(user=request.user).count()
+        forsale_count = Store.objects.filter(user=request.user).count()
+        return Response({"details": serializer.data, "inventory_count": inventory_count, "forsale_count": forsale_count}, status=status.HTTP_200_OK)
+
+    def put(self, request, *args, **kwargs):
+        producer_profile = Producer.objects.get(user=request.user)
+        serializer = ProducerProfileSerializer(producer_profile, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        
+class ProcessorProfileView(APIView):
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+    def get(self, request, *args, **kwargs):
+        processor_profile = Processor.objects.get(user=request.user)
+        serializer = ProcessorProfileSerializer(processor_profile)
+        inventory_count = Batch.objects.filter(processor=processor_profile).count()
+        forsale_count = Store.objects.filter(processor=processor_profile).count()
         return Response({"details": serializer.data, "inventory_count": inventory_count, "forsale_count": forsale_count}, status=status.HTTP_200_OK)
 
     def put(self, request, *args, **kwargs):
@@ -196,7 +216,7 @@ class ServiceRequestView(APIView):
                 "data": serializer.data
             })
         else:
-            service_request = ServiceRequest.objects.all().filter(producer=request.user)
+            service_request = ServiceRequest.objects.all()
             serializer = ServiceRequestSerializer(service_request, many=True)
             return Response({
                 "success": True,
@@ -227,6 +247,50 @@ class ServiceRequestView(APIView):
             "message": "Service Request deleted successfully",
             "data": None
         })
+    
+class MyRequestView(APIView):
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, pk=None, format=None):
+        if pk is not None:
+            service_request = get_object_or_404(ServiceRequest, pk=pk)
+            serializer = ServiceRequestSerializer(service_request)
+            return Response({
+                "success": True,
+                "message": "Service Request details",
+                "data": serializer.data
+            })
+        else:
+            service_request = ServiceRequest.objects.all().filter(producer=request.user)
+            serializer = ServiceRequestSerializer(service_request, many=True)
+            return Response({
+                "success": True,
+                "message": "Service Requests",
+                "data": serializer.data
+            })
+
+class MyServiceRequestView(APIView):
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, pk=None, format=None):
+        if pk is not None:
+            service_request = get_object_or_404(ServiceRequest, pk=pk)
+            serializer = ServiceRequestSerializer(service_request)
+            return Response({
+                "success": True,
+                "message": "Service Request details",
+                "data": serializer.data
+            })
+        else:
+            service_request = ServiceRequest.objects.all().filter(service__user=request.user)
+            serializer = ServiceRequestSerializer(service_request, many=True)
+            return Response({
+                "success": True,
+                "message": "Service Requests",
+                "data": serializer.data
+            })
     
 class ProcessorView(APIView):
     authentication_classes = [TokenAuthentication]
@@ -287,35 +351,38 @@ class ProcessorView(APIView):
             "data": None
         })
     
-class ServiceProviderView(APIView):
+class ServiceView(APIView):
     authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated]
 
     def get(self, request, pk=None, format=None):
         if pk is not None:
-            service_provider = get_object_or_404(ServiceProvider, pk=pk)
-            serializer = ServiceProviderSerializer(service_provider)
+            service = get_object_or_404(Service, pk=pk)
+            serializer = ServiceDetailSerializer(service)
             return Response({
                 "success": True,
-                "message": "Service Provider details",
+                "message": "Service details",
                 "data": serializer.data
             })
         else:
-            service_provider = ServiceProvider.objects.all()
-            serializer = ServiceProviderSerializer(service_provider, many=True)
+            service = self.request.query_params.get('service', None)
+            queryset = Service.objects.all()
+            if service:
+                queryset = queryset.filter(service__icontains=service)
+            serializer = ServiceDetailSerializer(queryset, many=True)
             return Response({
                 "success": True,
-                "message": "Service Providers",
+                "message": "Service",
                 "data": serializer.data
             })
 
     def post(self, request, format=None):
-        serializer = ServiceProviderSerializer(data=request.data, context={'request': request})
+        serializer = ServiceSerializer(data=request.data, context={'request': request})
         if serializer.is_valid():
             serializer.save()
             return Response({
                 "success": True,
-                "message": "Service Provider created successfully",
+                "message": "Service created successfully",
                 "data": serializer.data
             }, status=status.HTTP_201_CREATED)
         else:
@@ -325,13 +392,13 @@ class ServiceProviderView(APIView):
             }, status=status.HTTP_400_BAD_REQUEST)
 
     def put(self, request, pk=None, format=None):
-        service_provider = ServiceProvider.objects.get(user=request.user)
-        serializer = ServiceProviderSerializer(service_provider, data=request.data)
+        service = Service.objects.get(user=request.user)
+        serializer = ServiceSerializer(service, data=request.data)
         if serializer.is_valid():
             serializer.save()
             return Response({
                 "success": True,
-                "message": "Service Provider updated successfully",
+                "message": "Service updated successfully",
                 "data": serializer.data
             })
         else:
@@ -341,11 +408,11 @@ class ServiceProviderView(APIView):
             }, status=status.HTTP_400_BAD_REQUEST)
 
     def delete(self, request, pk=None, format=None):
-        service_provider = get_object_or_404(ServiceProvider, pk=pk)
-        service_provider.delete()
+        service = get_object_or_404(Service, pk=pk)
+        service.delete()
         return Response({
             "success": True,
-            "message": "Service Provider deleted successfully",
+            "message": "Service deleted successfully",
             "data": None
         })
 
@@ -532,18 +599,35 @@ class MarketView(APIView):
         if pk is not None:
             store = get_object_or_404(Store, pk=pk)
             serializer = StoreDetailSerializer(store)
+            batch_data = []
+
+            # Access the 'batch' field directly from serializer.data
+            batch_id = serializer.data.get('batch')['id']
+
+            while batch_id:
+                batch = Batch.objects.get(pk=batch_id)
+                batch_serializer = BatchSerializer(batch)
+                batch_data.append(batch_serializer.data)
+                batch_id = batch.created_from
+
+            # Add 'batches' field directly to serializer.data
+            serializer.data['batches'] = batch_data
+
             return Response({
                 "success": True,
                 "message": "Product details",
-                "data": serializer.data
+                "data": [serializer.data]  # Wrap serializer.data in a list
             })
         else:
             stores = Store.objects.all()
             serializer = StoreDetailSerializer(stores, many=True)
+
             return Response({
                 "success": True,
                 "message": "Market",
-                "data": serializer.data
+                "data": {
+                    "stores": serializer.data
+                }
             })
     
 class MyStoreView(generics.ListAPIView):

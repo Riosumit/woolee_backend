@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Producer, ServiceRequest, ServiceProvider, Processor, Batch, Store, Order
+from .models import Producer, Processor, Batch, Store, Order, Service, ServiceRequest
 from django.contrib.auth.models import User
 from django.shortcuts import get_object_or_404
 
@@ -27,17 +27,24 @@ class ProducerProfileSerializer(serializers.ModelSerializer):
         fields = ['id', 'user', 'farm_name', 'phone', 'pincode', 'district', 'state', 'sheep_count']
         read_only_fields = ['user']
 
+class ProcessorProfileSerializer(serializers.ModelSerializer):
+    user = UserSerializer(read_only=True)
+    class Meta:
+        model = Producer
+        fields = ['id', 'user', 'farm_name', 'phone', 'pincode', 'district', 'state', 'sheep_count']
+        read_only_fields = ['user']
+
 class ServiceRequestSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = ServiceRequest
-        fields = ['id', 'service_provider', 'processing_details', 'quantity', 'producer_delivery_address', 'producer_delivery_date', 'status', 'created_at']
-        read_only_fields = ['producer']
+        fields = ['id', 'service', 'batch', 'processing_details', 'processed_quantity', 'producer_delivery_address', 'producer_delivery_date', 'status', 'created_at']
+        read_only_fields = ['user']
 
     def create(self, validated_data):
         request = self.context.get('request')
-        producer = request.user
-        service_request = ServiceRequest.objects.create(producer=producer, **validated_data)
+        user = request.user
+        service_request = ServiceRequest.objects.create(user=user, **validated_data)
         return service_request
 
 class ProcessorSerializer(serializers.ModelSerializer):
@@ -52,30 +59,36 @@ class ProcessorSerializer(serializers.ModelSerializer):
         processor = Processor.objects.create(user=user, **validated_data)
         return processor
     
-class ServiceProviderSerializer(serializers.ModelSerializer):
+class ServiceSerializer(serializers.ModelSerializer):
 
     class Meta:
-        model = ServiceProvider
-        fields = ['id', 'available_services', 'service_prices']
+        model = Service
+        fields = ['id', 'service', 'price']
         read_only_fields = ['user']
 
     def create(self, validated_data):
         request = self.context.get('request')
         user = request.user
-        service_provider = ServiceProvider.objects.create(user=user, **validated_data)
+        service_provider = Service.objects.create(user=user, **validated_data)
         return service_provider
+
+class ServiceDetailSerializer(serializers.ModelSerializer):
+    user = UserSerializer()
+    class Meta:
+        model = Service
+        fields = ['id', 'user', 'service', 'price']
+        read_only_fields = ['user']
     
 class BatchSerializer(serializers.ModelSerializer):
     class Meta:
         model = Batch
         fields = '__all__'
-        read_only_fields = ['qr_code', 'producer']
+        read_only_fields = ['qr_code', 'user']
 
     def create(self, validated_data):
         request = self.context.get('request')
         user = request.user
-        producer = Producer.objects.get(user=user)
-        batch = Batch.objects.create(producer=producer, **validated_data)
+        batch = Batch.objects.create(user=user, **validated_data)
         return batch
         # return Batch.objects.create(**validated_data)
 
@@ -92,19 +105,18 @@ class BatchSerializer(serializers.ModelSerializer):
 class StoreSerializer(serializers.ModelSerializer):
     class Meta:
         model = Store
-        fields = ['id', 'producer', 'batch', 'price', 'quantity_available']
-        read_only_fields = ['quantity_available', 'producer']
+        fields = ['id', 'user', 'batch', 'price', 'quantity_available']
+        read_only_fields = ['quantity_available', 'user']
 
     def create(self, validated_data):
         batch = validated_data['batch']
         price = validated_data['price']
         request = self.context.get('request')
         user = request.user
-        producer = Producer.objects.get(user=user)
         quantity_available = batch.quantity
 
         store_data = {
-            'producer': producer,
+            'user': user,
             'batch': batch,
             'price': price,
             'quantity_available': quantity_available,
@@ -115,19 +127,19 @@ class StoreSerializer(serializers.ModelSerializer):
     
     def update(self, instance, validated_data):
         request_data = self.context['request'].data
-        new_quantity_available = request_data.get('quantity_available', instance.quantity_available)
+        new_quantity_available = request_data.get('quantity', instance.quantity_available)
         instance.quantity_available = new_quantity_available
         instance.price = validated_data.get('price', instance.price)
         instance.save()
         return instance
     
 class StoreDetailSerializer(serializers.ModelSerializer):
-    producer = ProducerSerializer()
+    user = UserSerializer()
     batch = BatchSerializer()
     class Meta:
         model = Store
-        fields = ['id', 'producer', 'batch', 'price', 'quantity_available']
-        read_only_fields = ['quantity_available', 'producer']
+        fields = ['id', 'user', 'batch', 'price', 'quantity_available']
+        read_only_fields = ['quantity_available', 'user']
 
 class OrderSerializer(serializers.ModelSerializer):
     class Meta:
@@ -145,7 +157,8 @@ class OrderSerializer(serializers.ModelSerializer):
         if quantity > quantity_available:
             raise serializers.ValidationError("Available quantity is not enough")
         new_quantity = quantity_available - quantity
-        serializer = StoreSerializer(store, data={'quantity_available': new_quantity})
+        request.data['quantity'] = new_quantity
+        serializer = StoreSerializer(store, data={'quantity_available': new_quantity}, partial=True, context={'request': request})
         
         if serializer.is_valid():
             serializer.save()

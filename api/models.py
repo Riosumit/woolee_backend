@@ -2,6 +2,7 @@ from django.db import models
 from django.contrib.auth.models import User
 from phonenumber_field.modelfields import PhoneNumberField
 import uuid
+import base64
 from enum import Enum
 
 class Producer(models.Model):
@@ -28,38 +29,9 @@ class Processor(models.Model):
     def __str__(self):
         return self.factory_name
     
-class ServiceProvider(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE)
-    available_services = models.CharField(max_length=100)
-    service_prices = models.JSONField()
-
-class ServiceRequest(models.Model):
-    producer = models.ForeignKey(User, on_delete=models.CASCADE)
-    service_provider = models.ForeignKey(ServiceProvider, on_delete=models.CASCADE)
-    processing_details = models.TextField(blank=True, null=True)
-    quantity = models.PositiveIntegerField()
-    producer_delivery_address = models.TextField(blank=True, null=True)
-    producer_delivery_date = models.DateField(blank=True, null=True)
-    status = models.CharField(max_length=100)
-    created_at = models.DateTimeField(auto_now_add=True)
-
-    def __str__(self):
-        return f"{self.producer.username} - {', '.join([tag.value for tag in self.service_types.all()])} Request"
-
-# class Shop(models.Model):
-#     owner = models.OneToOneField(User, on_delete=models.CASCADE)
-#     name = models.CharField(max_length=255)
-#     account_holder_name = models.CharField(max_length=255)
-#     account_number = models.CharField(max_length=20)
-#     bank_name = models.CharField(max_length=255)
-#     branch_name = models.CharField(max_length=255)
-#     ifsc_code = models.CharField(max_length=20)
-
-#     def __str__(self):
-#         return self.name   
-
 class Batch(models.Model):
-    producer = models.ForeignKey(Producer, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    created_from = models.ForeignKey('self', on_delete=models.CASCADE, null=True, blank=True, related_name='created_batches')
     type = models.CharField(max_length=100, default="raw wool")
     quantity = models.PositiveIntegerField(default=0)
     qr_code = models.CharField(max_length=50, unique=True)
@@ -74,14 +46,44 @@ class Batch(models.Model):
     def save(self, *args, **kwargs):
         if not self.qr_code:
             self.qr_code = str(uuid.uuid4().hex)[:12].upper()
+            self.qr_code = base64.b64encode(self.qr_code.encode()).decode('utf-8')
 
         super().save(*args, **kwargs)
 
+class Service(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    service = models.CharField(max_length=100)
+    price = models.PositiveIntegerField()
+
+class ServiceRequest(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    service = models.ForeignKey(Service, on_delete=models.CASCADE)
+    batch = models.ForeignKey(Batch, on_delete=models.CASCADE)
+    processing_details = models.TextField(blank=True, null=True)
+    processed_quantity = models.PositiveIntegerField(blank=True, null=True)
+    producer_delivery_address = models.TextField(blank=True, null=True)
+    producer_delivery_date = models.DateField(blank=True, null=True)
+    status = models.CharField(max_length=100, default="pending")
+    created_at = models.DateTimeField(auto_now_add=True)
+
     def __str__(self):
-        return f"{self.qr_code} - {self.producer.farm_name}"
-    
+        return f"{self.producer.username} - {self.service} Request"
+
+# class Shop(models.Model):
+#     owner = models.OneToOneField(User, on_delete=models.CASCADE)
+#     name = models.CharField(max_length=255)
+#     account_holder_name = models.CharField(max_length=255)
+#     account_number = models.CharField(max_length=20)
+#     bank_name = models.CharField(max_length=255)
+#     branch_name = models.CharField(max_length=255)
+#     ifsc_code = models.CharField(max_length=20)
+
+#     def __str__(self):
+#         return self.name   
+
+
 class Store(models.Model):
-    producer = models.ForeignKey(Producer, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
     batch = models.OneToOneField(Batch, on_delete=models.CASCADE)
     price = models.DecimalField(max_digits=12, decimal_places=2)
     quantity_available = models.PositiveIntegerField(default=0)
@@ -103,6 +105,7 @@ class Order(models.Model):
     def save(self, *args, **kwargs):
         if not self.order_id:
             self.order_id = str(uuid.uuid4().hex)[:12].upper()
+            self.order_id = base64.b64encode(self.order_id.encode()).decode('utf-8')
 
         super().save(*args, **kwargs)
 

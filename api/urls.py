@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import ProducerView, ProducerProfileView, LoginView, RegisterView, IsLoginView, LogoutView, QRCodeView, ProcessorView, ServiceProviderView, ServiceRequestView, BatchView, BatchSearchView, StoreView, MarketView, MyStoreView, OrderView, SoldItemView, MyOrderView
+from .views import ProducerView, ProducerProfileView, LoginView, RegisterView, IsLoginView, LogoutView, QRCodeView, ProcessorView, ServiceView, MyServiceRequestView, ServiceRequestView, MyRequestView, BatchView, BatchSearchView, StoreView, MarketView, MyStoreView, OrderView, SoldItemView, MyOrderView
 
 urlpatterns = [
     path('register', RegisterView.as_view(), name='regiser'),
@@ -9,12 +9,14 @@ urlpatterns = [
     path('profile', ProducerProfileView.as_view(), name='producer_profile'),
     path('producers', ProducerView.as_view(), name='producer_list'),
     path('producer/<int:pk>', ProducerView.as_view(), name='producer_detail'),
+    path('service/requests', MyServiceRequestView.as_view(), name='my_service_request_list'),
     path('service_requests', ServiceRequestView.as_view(), name='service_request_list'),
     path('service_request/<int:pk>', ServiceRequestView.as_view(), name='service_request_detail'),
     path('processors', ProcessorView.as_view(), name='processor_list'),
     path('processor/<int:pk>', ProcessorView.as_view(), name='processor_detail'),
-    path('service_providers', ServiceProviderView.as_view(), name='service_provider_list'),
-    path('service_provider/<int:pk>', ServiceProviderView.as_view(), name='service_provider_detail'),
+    path('myrequest', MyRequestView.as_view(), name='my_request_list'),
+    path('services', ServiceView.as_view(), name='service_list'),
+    path('service/<int:pk>', ServiceView.as_view(), name='service_detail'),
     path('batches', BatchView.as_view(), name='batch_list'),
     path('batch/<int:pk>', BatchView.as_view(), name='batch_detail'),
     path('batch/search', BatchSearchView.as_view(), name='batch_search'),
