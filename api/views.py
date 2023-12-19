@@ -346,8 +346,8 @@ class ShearingRequestView(APIView):
 class MyRequestView(generics.ListAPIView):
     serializer_class = ShearingRequestSerializer
     def get_queryset(self):
-        shearer = Shearer.objects.get(user=self.request.user)
-        queryset = Store.objects.filter(shearer=shearer)
+        producer = Producer.objects.get(user=self.request.user)
+        queryset = Store.objects.filter(producer=producer)
         return queryset
 
 # class ProducerProfileView(APIView):
