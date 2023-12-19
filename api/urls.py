@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import ProducerView, LoginView, RegisterView, IsLoginView, LogoutView, ProcessorView, CollectorView, ShearerView, ShearingRequestView, MyRequestView, BatchView, MyBatchView, StoreView, MyStoreView, MarketView, QRCodeView
+from .views import ProducerView, LoginView, RegisterView, IsLoginView, LogoutView, ProcessorView, CollectorView, ShearerView, ShearingRequestView, MyRequestView, RequestView, BatchView, MyBatchView, StoreView, MyStoreView, MarketView, QRCodeView
 
 urlpatterns = [
     path('register', RegisterView.as_view(), name='regiser'),
@@ -16,6 +16,7 @@ urlpatterns = [
     path('shearing_requests', ShearingRequestView.as_view(), name='shearing_request_list'),
     path('shearing_request/<int:pk>', ShearingRequestView.as_view(), name='shearing_request_detail'),
     path('myrequest', MyRequestView.as_view(), name='my_request_list'),
+    path('shearer/request', RequestView.as_view(), name='request_list'),
     path('processors', ProcessorView.as_view(), name='processor_list'),
     path('processor/<int:pk>', ProcessorView.as_view(), name='processor_detail'),
     path('batches', BatchView.as_view(), name='batch_list'),

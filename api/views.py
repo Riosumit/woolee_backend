@@ -349,6 +349,13 @@ class MyRequestView(generics.ListAPIView):
         producer = Producer.objects.get(user=self.request.user)
         queryset = Store.objects.filter(producer=producer)
         return queryset
+    
+class RequestView(generics.ListAPIView):
+    serializer_class = ShearingRequestSerializer
+    def get_queryset(self):
+        shearer = Shearer.objects.get(user=self.request.user)
+        queryset = Store.objects.filter(shearer=shearer)
+        return queryset
 
 # class ProducerProfileView(APIView):
 #     authentication_classes = [TokenAuthentication]
