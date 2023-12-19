@@ -78,19 +78,6 @@ class ShearingRequestSerializer(serializers.ModelSerializer):
 #         fields = ['id', 'user', 'farm_name', 'phone', 'pincode', 'district', 'state', 'sheep_count']
 #         read_only_fields = ['user']
 
-# class ServiceRequestSerializer(serializers.ModelSerializer):
-    
-#     class Meta:
-#         model = ServiceRequest
-#         fields = ['id', 'service', 'batch', 'processing_details', 'processed_quantity', 'producer_delivery_address', 'producer_delivery_date', 'status', 'created_at']
-#         read_only_fields = ['user']
-
-#     def create(self, validated_data):
-#         request = self.context.get('request')
-#         user = request.user
-#         service_request = ServiceRequest.objects.create(user=user, **validated_data)
-#         return service_request
-
 class ProcessorSerializer(serializers.ModelSerializer):
     class Meta:
         model = Processor
@@ -102,26 +89,6 @@ class ProcessorSerializer(serializers.ModelSerializer):
         user = request.user
         processor = Processor.objects.create(user=user, **validated_data)
         return processor
-    
-# class ServiceSerializer(serializers.ModelSerializer):
-
-#     class Meta:
-#         model = Service
-#         fields = ['id', 'service', 'price']
-#         read_only_fields = ['user']
-
-#     def create(self, validated_data):
-#         request = self.context.get('request')
-#         user = request.user
-#         service_provider = Service.objects.create(user=user, **validated_data)
-#         return service_provider
-
-# class ServiceDetailSerializer(serializers.ModelSerializer):
-#     user = UserSerializer()
-#     class Meta:
-#         model = Service
-#         fields = ['id', 'user', 'service', 'price']
-#         read_only_fields = ['user']
     
 class BatchSerializer(serializers.ModelSerializer):
     class Meta:
@@ -177,13 +144,13 @@ class StoreSerializer(serializers.ModelSerializer):
         instance.save()
         return instance
     
-# class StoreDetailSerializer(serializers.ModelSerializer):
-#     user = UserSerializer()
-#     batch = BatchSerializer()
-#     class Meta:
-#         model = Store
-#         fields = ['id', 'user', 'batch', 'price', 'quantity_available']
-#         read_only_fields = ['quantity_available', 'user']
+class StoreDetailSerializer(serializers.ModelSerializer):
+    collector = CollectorSerializer()
+    batch = BatchSerializer()
+    class Meta:
+        model = Store
+        fields = ['id', 'collector', 'batch', 'price', 'quantity_available']
+        read_only_fields = ['quantity_available', 'user']
 
 # class OrderSerializer(serializers.ModelSerializer):
 #     class Meta:

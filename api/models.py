@@ -124,26 +124,6 @@ class ProcessedWoolBatch(models.Model):
 
     # def __str__(self):
 
-
-# class Service(models.Model):
-#     user = models.ForeignKey(User, on_delete=models.CASCADE)
-#     service = models.CharField(max_length=100)
-#     price = models.PositiveIntegerField()
-
-# class ServiceRequest(models.Model):
-#     user = models.ForeignKey(User, on_delete=models.CASCADE)
-#     service = models.ForeignKey(Service, on_delete=models.CASCADE)
-#     batch = models.ForeignKey(Batch, on_delete=models.CASCADE)
-#     processing_details = models.TextField(blank=True, null=True)
-#     processed_quantity = models.PositiveIntegerField(blank=True, null=True)
-#     producer_delivery_address = models.TextField(blank=True, null=True)
-#     producer_delivery_date = models.DateField(blank=True, null=True)
-#     status = models.CharField(max_length=100, default="pending")
-#     created_at = models.DateTimeField(auto_now_add=True)
-
-#     def __str__(self):
-#         return f"{self.producer.username} - {self.service} Request"
-
 # # class Shop(models.Model):
 # #     owner = models.OneToOneField(User, on_delete=models.CASCADE)
 # #     name = models.CharField(max_length=255)

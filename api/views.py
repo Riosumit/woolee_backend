@@ -14,7 +14,7 @@ from django.http import HttpResponse
 from django.views import View
 from rest_framework.authtoken.models import Token
 from .models import Producer, Collector, Processor, Shearer, ShearingRequest, Batch, Store
-from .serializers import UserSerializer, ProducerSerializer, CollectorSerializer, ProcessorSerializer, ShearerSerializer, ShearingRequestSerializer, BatchSerializer, StoreSerializer
+from .serializers import UserSerializer, ProducerSerializer, CollectorSerializer, ProcessorSerializer, ShearerSerializer, ShearingRequestSerializer, BatchSerializer, StoreSerializer, StoreDetailSerializer
 
 # class CsrfExemptSessionAuthentication(SessionAuthentication):
 #     def enforce_csrf(self, request):
@@ -383,96 +383,6 @@ class ShearingRequestView(APIView):
 #         else:
 #             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-# class ServiceRequestView(APIView):
-#     authentication_classes = [TokenAuthentication]
-#     permission_classes = [IsAuthenticated]
-
-#     def get(self, request, pk=None, format=None):
-#         if pk is not None:
-#             service_request = get_object_or_404(ServiceRequest, pk=pk)
-#             serializer = ServiceRequestSerializer(service_request)
-#             return Response({
-#                 "success": True,
-#                 "message": "Service Request details",
-#                 "data": serializer.data
-#             })
-#         else:
-#             service_request = ServiceRequest.objects.all()
-#             serializer = ServiceRequestSerializer(service_request, many=True)
-#             return Response({
-#                 "success": True,
-#                 "message": "Service Requests",
-#                 "data": serializer.data
-#             })
-
-#     def post(self, request, format=None):
-#         serializer = ServiceRequestSerializer(data=request.data, context={'request': request})
-#         if serializer.is_valid():
-#             serializer.save()
-#             return Response({
-#                 "success": True,
-#                 "message": "Service Request created successfully",
-#                 "data": serializer.data
-#             }, status=status.HTTP_201_CREATED)
-#         else:
-#             return Response({
-#                 "success": False,
-#                 "errors": serializer.errors
-#             }, status=status.HTTP_400_BAD_REQUEST)
-
-#     def delete(self, request, pk=None, format=None):
-#         service_request = get_object_or_404(ServiceRequest, pk=pk)
-#         service_request.delete()
-#         return Response({
-#             "success": True,
-#             "message": "Service Request deleted successfully",
-#             "data": None
-#         })
-    
-# class MyRequestView(APIView):
-#     authentication_classes = [TokenAuthentication]
-#     permission_classes = [IsAuthenticated]
-
-#     def get(self, request, pk=None, format=None):
-#         if pk is not None:
-#             service_request = get_object_or_404(ServiceRequest, pk=pk)
-#             serializer = ServiceRequestSerializer(service_request)
-#             return Response({
-#                 "success": True,
-#                 "message": "Service Request details",
-#                 "data": serializer.data
-#             })
-#         else:
-#             service_request = ServiceRequest.objects.all().filter(producer=request.user)
-#             serializer = ServiceRequestSerializer(service_request, many=True)
-#             return Response({
-#                 "success": True,
-#                 "message": "Service Requests",
-#                 "data": serializer.data
-#             })
-
-# class MyServiceRequestView(APIView):
-#     authentication_classes = [TokenAuthentication]
-#     permission_classes = [IsAuthenticated]
-
-#     def get(self, request, pk=None, format=None):
-#         if pk is not None:
-#             service_request = get_object_or_404(ServiceRequest, pk=pk)
-#             serializer = ServiceRequestSerializer(service_request)
-#             return Response({
-#                 "success": True,
-#                 "message": "Service Request details",
-#                 "data": serializer.data
-#             })
-#         else:
-#             service_request = ServiceRequest.objects.all().filter(service__user=request.user)
-#             serializer = ServiceRequestSerializer(service_request, many=True)
-#             return Response({
-#                 "success": True,
-#                 "message": "Service Requests",
-#                 "data": serializer.data
-#             })
-    
 class ProcessorView(APIView):
     authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated]
