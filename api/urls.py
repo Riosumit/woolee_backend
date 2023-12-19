@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import ProducerView, ProducerProfileView, LoginView, RegisterView, IsLoginView, LogoutView, QRCodeView, ProcessorView, ServiceProviderView, ServiceRequestView, BatchView, BatchSearchView, StoreView, MyStoreView, OrderView, MyOrderView
+from .views import ProducerView, ProducerProfileView, LoginView, RegisterView, IsLoginView, LogoutView, QRCodeView, ProcessorView, ServiceProviderView, ServiceRequestView, BatchView, BatchSearchView, StoreView, MyStoreView, OrderView, SoldItemView, MyOrderView
 
 urlpatterns = [
     path('register', RegisterView.as_view(), name='regiser'),
@@ -23,6 +23,7 @@ urlpatterns = [
     path('store/<int:pk>', StoreView.as_view(), name='store_detail'),
     path('orders', OrderView.as_view(), name='order_list'),
     path('myorders', MyOrderView.as_view(), name='my_order_list'),
+    path('solditems', SoldItemView.as_view(), name='sold_items_list'),
     path('order/<int:pk>', OrderView.as_view(), name='order_detail'),
     path('qr_code', QRCodeView.as_view(), name='qr_code'),
     path('qrcode/<int:pk>', QRCodeView.as_view(), name='qrcode'),

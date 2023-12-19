@@ -557,6 +557,13 @@ class OrderView(APIView):
             })
 
     def post(self, request, format=None):
+        store = request.data.get("store")
+        mystore = Store.objects.filter(id=store)
+        if mystore:
+            return Response({
+                "success": True,
+                "message": "Can't buy your own Product"
+            }, status=status.HTTP_201_CREATED)
         serializer = OrderSerializer(data=request.data, context={'request': request})
         if serializer.is_valid():
             serializer.save()
@@ -602,8 +609,7 @@ class SoldItemView(APIView):
 
     def get(self, request, pk=None, format=None):
         if pk is not None:
-
-            order = get_object_or_404(Order, pk=pk, )
+            order = get_object_or_404(Order, pk=pk)
             serializer = OrderDetailSerializer(order)
             return Response({
                 "success": True,
@@ -611,7 +617,10 @@ class SoldItemView(APIView):
                 "data": serializer.data
             })
         else:
-            orders = Order.objects.all()
+            producer = get_object_or_404(Producer, user=request.user)
+            store = get_object_or_404(Store, producer=producer)
+            print(store)
+            orders = Order.objects.filter(store=store)
             serializer = OrderDetailSerializer(orders, many=True)
             return Response({
                 "success": True,
@@ -625,7 +634,7 @@ class MyOrderView(APIView):
 
     def get(self, request, pk=None, format=None):
         if pk is not None:
-            order = get_object_or_404(Order, pk=pk, customer=request.user)
+            order = get_object_or_404(Order, pk=pk)
             serializer = OrderDetailSerializer(order)
             return Response({
                 "success": True,
@@ -633,7 +642,7 @@ class MyOrderView(APIView):
                 "data": serializer.data
             })
         else:
-            orders = Order.objects.all()
+            orders = Order.objects.filter(customer=request.user)
             serializer = OrderDetailSerializer(orders, many=True)
             return Response({
                 "success": True,
