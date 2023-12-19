@@ -60,6 +60,7 @@ class ShearingRequest(models.Model):
         return f"{self.producer.username} - Shearing Request"
     
 class Batch(models.Model):
+    collector = models.ForeignKey(Collector, on_delete=models.CASCADE)
     producers = models.ManyToManyField(Producer)
     type = models.CharField(max_length=100, default="raw wool")
     quantity = models.PositiveIntegerField(default=0)
@@ -80,6 +81,37 @@ class Batch(models.Model):
         producer_names = ', '.join([producer.farm_name for producer in self.producers.all()])
         return f"{self.qr_code} - {producer_names}"
     
+class Store(models.Model):
+    collector = models.ForeignKey(Collector, on_delete=models.CASCADE)
+    batch = models.OneToOneField(Batch, on_delete=models.CASCADE)
+    price = models.DecimalField(max_digits=12, decimal_places=2)
+    quantity_available = models.PositiveIntegerField(default=0)
+
+    def __str__(self):
+        return f"{self.batch} - Price: {self.price} - Quantity Available: {self.quantity_available}"
+    
+class ProcessedWoolBatch(models.Model):
+    batch = models.ForeignKey(Batch, on_delete=models.CASCADE)
+    type = models.CharField(max_length=100, default="processed wool")
+    quantity = models.PositiveIntegerField(default=0)
+    qr_code = models.CharField(max_length=50, unique=True, blank=True, null=True)
+    production_date = models.DateField(auto_now_add=True)
+    current_location = models.CharField(max_length=50, default='In Factory')
+
+    # Quality parameters for processed wool
+    cleanliness = models.DecimalField(max_digits=5, decimal_places=2)
+    texture = models.CharField(max_length=50)
+    color = models.CharField(max_length=50)
+
+    def save(self, *args, **kwargs):
+        if not self.qr_code:
+            self.qr_code = str(uuid.uuid4().hex)[:12].upper()
+
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f"{self.qr_code} - {self.producer.farm_name}"
+    
 # class Case(models.Model):
 #     producer = models.ListForeignKey(Producer, on_delete=models.CASCADE)
 #     shearer = models.ForeignKey(Shearer, on_delete=models.CASCADE, blank=True, null=True)
@@ -91,28 +123,7 @@ class Batch(models.Model):
 #     parent_case = models.ForeignKey('self', on_delete=models.CASCADE, blank=True, null=True, related_name='child_cases')
 
     # def __str__(self):
-    #     return f"Case #{self.id}: {self.description}"
-    
-# class Batch(models.Model):
-#     user = models.ForeignKey(User, on_delete=models.CASCADE)
-#     created_from = models.ForeignKey('self', on_delete=models.CASCADE, null=True, blank=True, related_name='created_batches')
-#     type = models.CharField(max_length=100, default="raw wool")
-#     quantity = models.PositiveIntegerField(default=0)
-#     qr_code = models.CharField(max_length=50, unique=True)
-#     production_date = models.DateField(auto_now_add=True)
-#     current_location = models.CharField(max_length=50, default='In Farm')
 
-#     # Quality parameters
-#     thickness = models.DecimalField(max_digits=5, decimal_places=2)
-#     color = models.CharField(max_length=50)
-#     softness = models.CharField(max_length=50)
-
-#     def save(self, *args, **kwargs):
-#         if not self.qr_code:
-#             self.qr_code = str(uuid.uuid4().hex)[:12].upper()
-#             self.qr_code = base64.b64encode(self.qr_code.encode()).decode('utf-8')
-
-#         super().save(*args, **kwargs)
 
 # class Service(models.Model):
 #     user = models.ForeignKey(User, on_delete=models.CASCADE)

@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import ProducerView, LoginView, RegisterView, IsLoginView, LogoutView, ProcessorView, CollectorView, ShearerView
+from .views import ProducerView, LoginView, RegisterView, IsLoginView, LogoutView, ProcessorView, CollectorView, ShearerView, ShearingRequestView, BatchView, MyBatchView, StoreView
 # , ProducerProfileView, QRCodeView, ServiceView, MyServiceRequestView, ServiceRequestView, MyRequestView, BatchView, BatchSearchView, StoreView, MarketView, MyStoreView, OrderView, SoldItemView, MyOrderView
 
 urlpatterns = [
@@ -14,6 +14,8 @@ urlpatterns = [
     path('collector/<int:pk>', CollectorView.as_view(), name='collector_detail'),
     path('shearers', ShearerView.as_view(), name='shearer_list'),
     path('shearer/<int:pk>', ShearerView.as_view(), name='shearer_detail'),
+    path('shearing_requests', ShearingRequestView.as_view(), name='shearing_request_list'),
+    path('shearing_request/<int:pk>', ShearingRequestView.as_view(), name='shearing_request_detail'),
     # path('service/requests', MyServiceRequestView.as_view(), name='my_service_request_list'),
     # path('service_requests', ServiceRequestView.as_view(), name='service_request_list'),
     # path('service_request/<int:pk>', ServiceRequestView.as_view(), name='service_request_detail'),
@@ -22,10 +24,10 @@ urlpatterns = [
     # path('myrequest', MyRequestView.as_view(), name='my_request_list'),
     # path('services', ServiceView.as_view(), name='service_list'),
     # path('service/<int:pk>', ServiceView.as_view(), name='service_detail'),
-    # path('batches', BatchView.as_view(), name='batch_list'),
-    # path('batch/<int:pk>', BatchView.as_view(), name='batch_detail'),
-    # path('batch/search', BatchSearchView.as_view(), name='batch_search'),
-    # path('stores', StoreView.as_view(), name='store_list'),
+    path('batches', BatchView.as_view(), name='batch_list'),
+    path('batch/<int:pk>', BatchView.as_view(), name='batch_detail'),
+    path('mybatch', MyBatchView.as_view(), name='mybatch'),
+    path('stores', StoreView.as_view(), name='store_list'),
     # path('market', MarketView.as_view(), name='market_list'),
     # path('product/<int:pk>', MarketView.as_view(), name='Product_details'),
     # path('mystore', MyStoreView.as_view(), name='my_store_list'),
