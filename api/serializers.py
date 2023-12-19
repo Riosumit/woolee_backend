@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Producer, Collector, Processor, Shearer, ShearingRequest, Batch, Store
+from .models import Producer, Collector, Processor, Shearer, ShearingRequest, Batch, Store, ProcessedBatch, ProcessedStore
 from django.contrib.auth.models import User
 from django.shortcuts import get_object_or_404
 
@@ -95,7 +95,7 @@ class BatchSerializer(serializers.ModelSerializer):
     class Meta:
         model = Batch
         fields = '__all__'
-        read_only_fields = ['qr_code', 'user']
+        read_only_fields = ['qr_code', 'collector']
 
     def create(self, validated_data):
         request = self.context.get('request')
@@ -151,6 +151,60 @@ class StoreDetailSerializer(serializers.ModelSerializer):
     class Meta:
         model = Store
         fields = ['id', 'collector', 'batch', 'price', 'quantity_available']
+        read_only_fields = ['quantity_available', 'user']
+
+class ProcessedBatchSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ProcessedBatch
+        fields = '__all__'
+        read_only_fields = ['qr_code', 'processor']
+
+    def create(self, validated_data):
+        request = self.context.get('request')
+        user = request.user
+        processor = Processor.objects.get(user=user)
+        batch = ProcessedBatch.objects.create(processor=processor, **validated_data)
+        return batch
+        # return Batch.objects.create(**validated_data)
+    
+class ProcessedStoreSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ProcessedStore
+        fields = ['id', 'processor', 'processedbatch', 'price', 'quantity_available']
+        read_only_fields = ['quantity_available', 'processor']
+
+    def create(self, validated_data):
+        batch = validated_data['batch']
+        price = validated_data['price']
+        request = self.context.get('request')
+        user = request.user
+        processor = Processor.objects.get(user=user)
+        quantity_available = batch.quantity
+
+        store_data = {
+            'collector': processor,
+            'processedbatch': batch,
+            'price': price,
+            'quantity_available': quantity_available,
+        }
+
+        store = Store.objects.create(**store_data)
+        return store
+    
+    def update(self, instance, validated_data):
+        request_data = self.context['request'].data
+        new_quantity_available = request_data.get('quantity', instance.quantity_available)
+        instance.quantity_available = new_quantity_available
+        instance.price = validated_data.get('price', instance.price)
+        instance.save()
+        return instance
+    
+class StoreDetailSerializer(serializers.ModelSerializer):
+    prosessor = ProcessorSerializer()
+    processedbatch = ProcessedBatchSerializer()
+    class Meta:
+        model = Store
+        fields = ['id', 'processor', 'processedbatch', 'price', 'quantity_available']
         read_only_fields = ['quantity_available', 'user']
 
 # class OrderSerializer(serializers.ModelSerializer):

@@ -89,28 +89,37 @@ class Store(models.Model):
     def __str__(self):
         return f"{self.batch} - Price: {self.price} - Quantity Available: {self.quantity_available}"
     
-# class ProcessedBatch(models.Model):
-#     processor = models.ForeignKey(Processor, on_delete=models.CASCADE)
-#     batch = models.ForeignKey(Batch, on_delete=models.CASCADE)
-#     type = models.CharField(max_length=100, default="processed wool")
-#     raw_quantity = models.PositiveIntegerField(default=0)
-#     processed_quantity = models.PositiveIntegerField(default=0)
-#     qr_code = models.CharField(max_length=50, unique=True, blank=True, null=True)
-#     production_date = models.DateField(auto_now_add=True)
+class ProcessedBatch(models.Model):
+    processor = models.ForeignKey(Processor, on_delete=models.CASCADE)
+    batch = models.ForeignKey(Batch, on_delete=models.CASCADE)
+    type = models.CharField(max_length=100, default="processed wool")
+    raw_quantity = models.PositiveIntegerField(default=0)
+    processed_quantity = models.PositiveIntegerField(default=0)
+    qr_code = models.CharField(max_length=50, unique=True, blank=True, null=True)
+    production_date = models.DateField(auto_now_add=True)
 
-#     # Quality parameters for processed wool
-#     cleanliness = models.DecimalField(max_digits=5, decimal_places=2)
-#     texture = models.CharField(max_length=50)
-#     color = models.CharField(max_length=50)
+    # Quality parameters for processed wool
+    cleanliness = models.DecimalField(max_digits=5, decimal_places=2)
+    texture = models.CharField(max_length=50)
+    color = models.CharField(max_length=50)
 
-#     def save(self, *args, **kwargs):
-#         if not self.qr_code:
-#             self.qr_code = str(uuid.uuid4().hex)[:12].upper()
+    def save(self, *args, **kwargs):
+        if not self.qr_code:
+            self.qr_code = str(uuid.uuid4().hex)[:12].upper()
 
-#         super().save(*args, **kwargs)
+        super().save(*args, **kwargs)
 
-#     def __str__(self):
-#         return f"{self.qr_code} - {self.producer.farm_name}"
+    def __str__(self):
+        return f"{self.qr_code} - {self.processor.factory_name}"
+    
+class ProcessedStore(models.Model):
+    processor = models.ForeignKey(Processor, on_delete=models.CASCADE)
+    processedbatch = models.OneToOneField(ProcessedBatch, on_delete=models.CASCADE)
+    price = models.DecimalField(max_digits=12, decimal_places=2)
+    quantity_available = models.PositiveIntegerField(default=0)
+
+    def __str__(self):
+        return f"{self.batch} - Price: {self.price} - Quantity Available: {self.quantity_available}"
     
 # class Case(models.Model):
 #     producer = models.ListForeignKey(Producer, on_delete=models.CASCADE)
