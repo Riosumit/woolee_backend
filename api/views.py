@@ -635,11 +635,11 @@ class StoreView(APIView):
 #                 }
 #             })
     
-# class MyStoreView(generics.ListAPIView):
-#     serializer_class = StoreDetailSerializer
-#     def get_queryset(self):
-#         queryset = Store.objects.filter(user=self.request.user)
-#         return queryset
+class MyStoreView(generics.ListAPIView):
+    serializer_class = StoreDetailSerializer
+    def get_queryset(self):
+        queryset = Store.objects.filter(user=self.request.user)
+        return queryset
 
 # class OrderView(APIView):
 #     authentication_classes = [TokenAuthentication]
