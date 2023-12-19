@@ -442,111 +442,46 @@ class ProcessorView(APIView):
             "data": None
         })
     
-# class ServiceView(APIView):
-#     authentication_classes = [TokenAuthentication]
-#     permission_classes = [IsAuthenticated]
+class QRCodeView(APIView):
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
 
-#     def get(self, request, pk=None, format=None):
-#         if pk is not None:
-#             service = get_object_or_404(Service, pk=pk)
-#             serializer = ServiceDetailSerializer(service)
-#             return Response({
-#                 "success": True,
-#                 "message": "Service details",
-#                 "data": serializer.data
-#             })
-#         else:
-#             service = self.request.query_params.get('service', None)
-#             queryset = Service.objects.all()
-#             if service:
-#                 queryset = queryset.filter(service__icontains=service)
-#             serializer = ServiceDetailSerializer(queryset, many=True)
-#             return Response({
-#                 "success": True,
-#                 "message": "Service",
-#                 "data": serializer.data
-#             })
+    def get(self, request, pk):
+        qr = qrcode.QRCode(
+            version=1,
+            error_correction=qrcode.constants.ERROR_CORRECT_L,
+            box_size=10,
+            border=4,
+        )
+        qr.add_data(pk)
+        qr.make(fit=True)
 
-#     def post(self, request, format=None):
-#         serializer = ServiceSerializer(data=request.data, context={'request': request})
-#         if serializer.is_valid():
-#             serializer.save()
-#             return Response({
-#                 "success": True,
-#                 "message": "Service created successfully",
-#                 "data": serializer.data
-#             }, status=status.HTTP_201_CREATED)
-#         else:
-#             return Response({
-#                 "success": False,
-#                 "errors": serializer.errors
-#             }, status=status.HTTP_400_BAD_REQUEST)
-
-#     def put(self, request, pk=None, format=None):
-#         service = Service.objects.get(user=request.user)
-#         serializer = ServiceSerializer(service, data=request.data)
-#         if serializer.is_valid():
-#             serializer.save()
-#             return Response({
-#                 "success": True,
-#                 "message": "Service updated successfully",
-#                 "data": serializer.data
-#             })
-#         else:
-#             return Response({
-#                 "success": False,
-#                 "errors": serializer.errors
-#             }, status=status.HTTP_400_BAD_REQUEST)
-
-#     def delete(self, request, pk=None, format=None):
-#         service = get_object_or_404(Service, pk=pk)
-#         service.delete()
-#         return Response({
-#             "success": True,
-#             "message": "Service deleted successfully",
-#             "data": None
-#         })
-
-# class QRCodeView(APIView):
-#     authentication_classes = [TokenAuthentication]
-#     permission_classes = [IsAuthenticated]
-
-#     def get(self, request, pk):
-#         qr = qrcode.QRCode(
-#             version=1,
-#             error_correction=qrcode.constants.ERROR_CORRECT_L,
-#             box_size=10,
-#             border=4,
-#         )
-#         qr.add_data(pk)
-#         qr.make(fit=True)
-
-#         img = qr.make_image(fill_color="black", back_color="white")
-#         response = HttpResponse(content_type="image/png")
-#         img.save(response, "PNG")
-#         return response
+        img = qr.make_image(fill_color="black", back_color="white")
+        response = HttpResponse(content_type="image/png")
+        img.save(response, "PNG")
+        return response
     
-#     def post(self, request, format=None):
-#         qr_code=request.data.get('qr_code')
-#         if qr_code:
-#             qr = qrcode.QRCode(
-#                 version=1,
-#                 error_correction=qrcode.constants.ERROR_CORRECT_L,
-#                 box_size=10,
-#                 border=4,
-#             )
-#             qr.add_data(qr_code)
-#             qr.make(fit=True)
+    def post(self, request, format=None):
+        qr_code=request.data.get('qr_code')
+        if qr_code:
+            qr = qrcode.QRCode(
+                version=1,
+                error_correction=qrcode.constants.ERROR_CORRECT_L,
+                box_size=10,
+                border=4,
+            )
+            qr.add_data(qr_code)
+            qr.make(fit=True)
 
-#             img = qr.make_image(fill_color="black", back_color="white")
-#             response = HttpResponse(content_type="image/png")
-#             img.save(response, "PNG")
-#             return response
-#         else:
-#             return Response({
-#                 "success": False,
-#                 "errors": "qr_code is required"
-#             }, status=status.HTTP_400_BAD_REQUEST)
+            img = qr.make_image(fill_color="black", back_color="white")
+            response = HttpResponse(content_type="image/png")
+            img.save(response, "PNG")
+            return response
+        else:
+            return Response({
+                "success": False,
+                "errors": "qr_code is required"
+            }, status=status.HTTP_400_BAD_REQUEST)
     
 class BatchView(APIView):
     authentication_classes = [TokenAuthentication]
