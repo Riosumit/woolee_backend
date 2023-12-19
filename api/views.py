@@ -524,8 +524,7 @@ class BatchSearchView(generics.ListAPIView):
     def get_queryset(self):
         batch_type = self.request.query_params.get('type', None)
         location = self.request.query_params.get('location', None)
-        producer = Producer.objects.get(user=self.request.user)
-        queryset = Batch.objects.filter(producer=producer)
+        queryset = Batch.objects.filter(user=self.request.user)
         if batch_type:
             queryset = queryset.filter(type__icontains=batch_type)
         if location:
