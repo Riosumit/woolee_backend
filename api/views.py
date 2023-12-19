@@ -528,7 +528,7 @@ class StoreView(APIView):
         })
     
 class MyStoreView(generics.ListAPIView):
-    serializer_class = StoreSerializer
+    serializer_class = StoreDetailSerializer
     def get_queryset(self):
         producer = Producer.objects.get(user=self.request.user)
         queryset = Store.objects.filter(producer=producer)
@@ -559,7 +559,8 @@ class OrderView(APIView):
     def post(self, request, format=None):
         store = request.data.get("store")
         mystore = Store.objects.filter(id=store)
-        if mystore:
+        producer = Producer.objects.filter(user=request.user)
+        if mystore.producer == producer:
             return Response({
                 "success": True,
                 "message": "Can't buy your own Product"

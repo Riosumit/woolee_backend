@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from .models import Producer, ServiceRequest, ServiceProvider, Processor, Batch, Store, Order
 from django.contrib.auth.models import User
+from django.shortcuts import get_object_or_404
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
@@ -125,19 +126,31 @@ class StoreDetailSerializer(serializers.ModelSerializer):
 class OrderSerializer(serializers.ModelSerializer):
     class Meta:
         model = Order
-        fields = ('__all__')
+        fields = '__all__'
         read_only_fields = ['customer', 'order_id', 'total_price']
 
     def create(self, validated_data):
         request = self.context.get('request')
         user = request.user
-        total_price=validated_data["store"].price*validated_data["quantity"]
+        store = get_object_or_404(Store, id=validated_data["store"].id)
+        quantity_available = store.quantity_available
+        quantity = validated_data.get("quantity", 0)
+        
+        if quantity > quantity_available:
+            raise serializers.ValidationError("Available quantity is not enough")
+
+        serializer = StoreSerializer(store, data={'quantity_available': quantity_available - quantity}, partial=True)
+        
+        if serializer.is_valid():
+            serializer.save()
+        else:
+            raise serializers.ValidationError(serializer.errors)
+
+        total_price = store.price * quantity
         order = Order.objects.create(customer=user, total_price=total_price, **validated_data)
         return order
 
     def update(self, instance, validated_data):
-        # instance.customer = validated_data.get('customer', instance.customer)
-        # instance.store = validated_data.get('store', instance.store)
         instance.quantity = validated_data.get('quantity', instance.quantity)
         instance.total_price = validated_data.get('total_price', instance.total_price)
         instance.order_id = validated_data.get('order_id', instance.order_id)
