@@ -704,8 +704,7 @@ class SoldItemView(APIView):
                 "data": serializer.data
             })
         else:
-            producer = get_object_or_404(Producer, user=request.user)
-            store = get_object_or_404(Store, producer=producer)
+            store = get_object_or_404(Store, user=request.user)
             print(store)
             orders = Order.objects.filter(store=store)
             serializer = OrderDetailSerializer(orders, many=True)
