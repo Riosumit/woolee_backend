@@ -54,7 +54,7 @@ class RegisterView(APIView):
             role="collector"
         elif(Processor.objects.filter(user=user)):
             role="processor"
-        elif(Processor.objects.filter(user=user)):
+        elif(Shearer.objects.filter(user=user)):
             role="shearer"
         response_data = {"success": True,
                          'message': 'User registered successfully',
@@ -77,7 +77,7 @@ class LoginView(APIView):
                 role="collector"
             elif(Processor.objects.filter(user=user)):
                 role="processor"
-            elif(Processor.objects.filter(user=user)):
+            elif(Shearer.objects.filter(user=user)):
                 role="shearer"
             response_data = {"success": True, 
                              'message': 'Login successful', 
