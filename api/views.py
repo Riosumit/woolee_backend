@@ -613,27 +613,27 @@ class StoreView(APIView):
             "data": None
         })
     
-# class MarketView(APIView):
-#     def get(self, request, pk=None, format=None):
-#         if pk is not None:
-#             store = get_object_or_404(Store, pk=pk)
-#             serializer = StoreDetailSerializer(store)
-#             return Response({
-#                 "success": True,
-#                 "message": "Product details",
-#                 "data": [serializer.data]  # Wrap serializer.data in a list
-#             })
-#         else:
-#             stores = Store.objects.all()
-#             serializer = StoreDetailSerializer(stores, many=True)
+class MarketView(APIView):
+    def get(self, request, pk=None, format=None):
+        if pk is not None:
+            store = get_object_or_404(Store, pk=pk)
+            serializer = StoreDetailSerializer(store)
+            return Response({
+                "success": True,
+                "message": "Product details",
+                "data": [serializer.data]  
+            })
+        else:
+            stores = Store.objects.all()
+            serializer = StoreDetailSerializer(stores, many=True)
 
-#             return Response({
-#                 "success": True,
-#                 "message": "Market",
-#                 "data": {
-#                     "stores": serializer.data
-#                 }
-#             })
+            return Response({
+                "success": True,
+                "message": "Market",
+                "data": {
+                    "stores": serializer.data
+                }
+            })
     
 class MyStoreView(generics.ListAPIView):
     serializer_class = StoreDetailSerializer
