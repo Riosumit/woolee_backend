@@ -151,7 +151,7 @@ class StoreDetailSerializer(serializers.ModelSerializer):
     class Meta:
         model = Store
         fields = ['id', 'collector', 'batch', 'price', 'quantity_available']
-        read_only_fields = ['quantity_available', 'user']
+        read_only_fields = ['quantity_available', 'collector']
 
 class ProcessedBatchSerializer(serializers.ModelSerializer):
     class Meta:
@@ -166,6 +166,14 @@ class ProcessedBatchSerializer(serializers.ModelSerializer):
         batch = ProcessedBatch.objects.create(processor=processor, **validated_data)
         return batch
         # return Batch.objects.create(**validated_data)
+    
+class ProcessedBatchDetailSerializer(serializers.ModelSerializer):
+    prosessor = ProcessorSerializer()
+    processedbatch = ProcessedBatchSerializer()
+    class Meta:
+        model = ProcessedBatch
+        fields = ['id', 'processor', 'processedbatch', 'price', 'quantity_available']
+        read_only_fields = ['qr_code', 'processor']
     
 class ProcessedStoreSerializer(serializers.ModelSerializer):
     class Meta:
@@ -205,7 +213,7 @@ class StoreDetailSerializer(serializers.ModelSerializer):
     class Meta:
         model = Store
         fields = ['id', 'processor', 'processedbatch', 'price', 'quantity_available']
-        read_only_fields = ['quantity_available', 'user']
+        read_only_fields = ['quantity_available', 'processor']
 
 # class OrderSerializer(serializers.ModelSerializer):
 #     class Meta:
