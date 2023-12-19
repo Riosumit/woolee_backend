@@ -598,20 +598,6 @@ class MarketView(APIView):
         if pk is not None:
             store = get_object_or_404(Store, pk=pk)
             serializer = StoreDetailSerializer(store)
-            batch_data = []
-
-            # Access the 'batch' field directly from serializer.data
-            batch_id = serializer.data.get('batch')['id']
-
-            while batch_id:
-                batch = Batch.objects.get(pk=batch_id)
-                batch_serializer = BatchSerializer(batch)
-                batch_data.append(batch_serializer.data)
-                batch_id = batch.created_from
-
-            # Add 'batches' field directly to serializer.data
-            serializer.data['batches'] = batch_data
-
             return Response({
                 "success": True,
                 "message": "Product details",
@@ -632,8 +618,7 @@ class MarketView(APIView):
 class MyStoreView(generics.ListAPIView):
     serializer_class = StoreDetailSerializer
     def get_queryset(self):
-        producer = Producer.objects.get(user=self.request.user)
-        queryset = Store.objects.filter(producer=producer)
+        queryset = Store.objects.filter(user=self.request.user)
         return queryset
 
 class OrderView(APIView):
