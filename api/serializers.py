@@ -101,9 +101,7 @@ class StoreSerializer(serializers.ModelSerializer):
         request = self.context.get('request')
         user = request.user
         producer = Producer.objects.get(user=user)
-
-        # Assuming the Batch model has a 'quantity' field
-        quantity_available = batch.quantity  # Adjust this based on your Batch model
+        quantity_available = batch.quantity
 
         store_data = {
             'producer': producer,
@@ -114,6 +112,14 @@ class StoreSerializer(serializers.ModelSerializer):
 
         store = Store.objects.create(**store_data)
         return store
+    
+    def update(self, instance, validated_data):
+        request_data = self.context['request'].data
+        new_quantity_available = request_data.get('quantity_available', instance.quantity_available)
+        instance.quantity_available = new_quantity_available
+        instance.price = validated_data.get('price', instance.price)
+        instance.save()
+        return instance
     
 class StoreDetailSerializer(serializers.ModelSerializer):
     producer = ProducerSerializer()
@@ -138,8 +144,8 @@ class OrderSerializer(serializers.ModelSerializer):
         
         if quantity > quantity_available:
             raise serializers.ValidationError("Available quantity is not enough")
-
-        serializer = StoreSerializer(store, data={'quantity_available': quantity_available - quantity}, partial=True)
+        new_quantity = quantity_available - quantity
+        serializer = StoreSerializer(store, data={'quantity_available': new_quantity})
         
         if serializer.is_valid():
             serializer.save()

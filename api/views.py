@@ -504,7 +504,7 @@ class StoreView(APIView):
 
     def put(self, request, pk=None, format=None):
         store = Store.objects.get(pk=pk)
-        serializer = StoreSerializer(store, data=request.data)
+        serializer = StoreSerializer(store, data=request.data, partial=True, context={'request': request})
         if serializer.is_valid():
             serializer.save()
             return Response({
@@ -526,6 +526,25 @@ class StoreView(APIView):
             "message": "Store deleted successfully",
             "data": None
         })
+    
+class MarketView(APIView):
+    def get(self, request, pk=None, format=None):
+        if pk is not None:
+            store = get_object_or_404(Store, pk=pk)
+            serializer = StoreDetailSerializer(store)
+            return Response({
+                "success": True,
+                "message": "Product details",
+                "data": serializer.data
+            })
+        else:
+            stores = Store.objects.all()
+            serializer = StoreDetailSerializer(stores, many=True)
+            return Response({
+                "success": True,
+                "message": "Market",
+                "data": serializer.data
+            })
     
 class MyStoreView(generics.ListAPIView):
     serializer_class = StoreDetailSerializer
@@ -557,14 +576,13 @@ class OrderView(APIView):
             })
 
     def post(self, request, format=None):
-        store = request.data.get("store")
-        mystore = Store.objects.filter(id=store)
-        producer = Producer.objects.filter(user=request.user)
-        if mystore.producer == producer:
+        store_id = request.data.get("store")
+        mystore = Store.objects.get(id=store_id)
+        if mystore and mystore.producer.user == request.user:
             return Response({
-                "success": True,
+                "success": False,
                 "message": "Can't buy your own Product"
-            }, status=status.HTTP_201_CREATED)
+            }, status=status.HTTP_400_BAD_REQUEST)
         serializer = OrderSerializer(data=request.data, context={'request': request})
         if serializer.is_valid():
             serializer.save()
