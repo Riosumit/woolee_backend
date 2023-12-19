@@ -13,8 +13,8 @@ import qrcode
 from django.http import HttpResponse
 from django.views import View
 from rest_framework.authtoken.models import Token
-from .models import Producer, Collector, Processor, Shearer, ShearingRequest, Batch, Store
-from .serializers import UserSerializer, ProducerSerializer, CollectorSerializer, ProcessorSerializer, ShearerSerializer, ShearingRequestSerializer, BatchSerializer, StoreSerializer, StoreDetailSerializer
+from .models import Producer, Collector, Processor, Shearer, ShearingRequest, Batch, Store, ProcessedBatch, ProcessedStore
+from .serializers import UserSerializer, ProducerSerializer, CollectorSerializer, ProcessorSerializer, ShearerSerializer, ShearingRequestSerializer, BatchSerializer, StoreSerializer, StoreDetailSerializer, ProcessedStoreSerializer, ProcessedBatchSerializer, ProcessedBatchDetailSerializer
 
 # class CsrfExemptSessionAuthentication(SessionAuthentication):
 #     def enforce_csrf(self, request):
@@ -351,14 +351,14 @@ class MyRequestView(generics.ListAPIView):
     serializer_class = ShearingRequestSerializer
     def get_queryset(self):
         producer = Producer.objects.get(user=self.request.user)
-        queryset = Store.objects.filter(producer=producer)
+        queryset = ShearingRequest.objects.filter(producer=producer)
         return queryset
     
 class RequestView(generics.ListAPIView):
     serializer_class = ShearingRequestSerializer
     def get_queryset(self):
         shearer = Shearer.objects.get(user=self.request.user)
-        queryset = Store.objects.filter(shearer=shearer)
+        queryset = ShearingRequest.objects.filter(shearer=shearer)
         return queryset
 
 # class ProducerProfileView(APIView):

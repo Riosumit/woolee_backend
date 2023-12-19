@@ -209,7 +209,7 @@ class ProcessedStoreSerializer(serializers.ModelSerializer):
     
 class StoreDetailSerializer(serializers.ModelSerializer):
     prosessor = ProcessorSerializer()
-    processedbatch = ProcessedBatchSerializer()
+    processedbatch = ProcessedBatchDetailSerializer()
     class Meta:
         model = Store
         fields = ['id', 'processor', 'processedbatch', 'price', 'quantity_available']
