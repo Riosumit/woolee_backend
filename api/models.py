@@ -63,7 +63,7 @@ class Batch(models.Model):
     type = models.CharField(max_length=100, default="raw wool")
     quantity = models.PositiveIntegerField(default=0)
     qr_code = models.CharField(max_length=50, unique=True)
-    production_date = models.DateField()
+    production_date = models.DateField(auto_now_add=True)
     current_location = models.CharField(max_length=50, default='In Farm')
 
     # Quality parameters
