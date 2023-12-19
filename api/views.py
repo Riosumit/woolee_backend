@@ -14,7 +14,7 @@ from django.http import HttpResponse
 from django.views import View
 from rest_framework.authtoken.models import Token
 from .models import Producer, Collector, Processor, Shearer, ShearingRequest, Batch, Store, ProcessedBatch, ProcessedStore
-from .serializers import UserSerializer, ProducerSerializer, CollectorSerializer, ProcessorSerializer, ShearerSerializer, ShearingRequestSerializer, BatchSerializer, StoreSerializer, StoreDetailSerializer, ProcessedStoreSerializer, ProcessedBatchSerializer, ProcessedBatchDetailSerializer
+from .serializers import UserSerializer, ProducerSerializer, CollectorSerializer, ProcessorSerializer, ShearerSerializer, ShearingRequestSerializer, BatchSerializer, BatchDetailSerializer, StoreSerializer, StoreDetailSerializer, ProcessedStoreSerializer, ProcessedBatchSerializer, ProcessedBatchDetailSerializer
 
 # class CsrfExemptSessionAuthentication(SessionAuthentication):
 #     def enforce_csrf(self, request):
@@ -508,7 +508,7 @@ class BatchView(APIView):
     def get(self, request, pk=None, format=None):
         if pk is not None:
             batch = get_object_or_404(Batch, pk=pk)
-            serializer = BatchSerializer(batch)
+            serializer = BatchDetailSerializer(batch)
             return Response({
                 "success": True,
                 "message": "Batch details",
@@ -516,7 +516,7 @@ class BatchView(APIView):
             })
         else:
             batches = Batch.objects.all()
-            serializer = BatchSerializer(batches, many=True)
+            serializer = BatchDetailSerializer(batches, many=True)
             return Response({
                 "success": True,
                 "message": "Batches",
@@ -564,9 +564,10 @@ class BatchView(APIView):
         })
     
 class MyBatchView(generics.ListAPIView):
-    serializer_class = BatchSerializer
+    serializer_class = BatchDetailSerializer
     def get_queryset(self):
-        queryset = Batch.objects.filter(user=self.request.user)
+        collector = Collector.objects.get(user=self.request.user)
+        queryset = Batch.objects.filter(collector=collector)
         return queryset
     
 class StoreView(APIView):
@@ -631,6 +632,137 @@ class StoreView(APIView):
             "data": None
         })
     
+class ProcessedBatchView(APIView):
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, pk=None, format=None):
+        if pk is not None:
+            batch = get_object_or_404(Batch, pk=pk)
+            serializer = ProcessedBatchSerializer(batch)
+            return Response({
+                "success": True,
+                "message": "Batch details",
+                "data": serializer.data
+            })
+        else:
+            batches = Batch.objects.all()
+            serializer = ProcessedBatchSerializer(batches, many=True)
+            return Response({
+                "success": True,
+                "message": "Batches",
+                "data": serializer.data
+            })
+
+    def post(self, request, format=None):
+        serializer = ProcessedBatchSerializer(data=request.data, context={'request': request})
+        if serializer.is_valid():
+            batch = serializer.save()
+            return Response({
+                "success": True,
+                "message": "Batch created successfully",
+                "data": serializer.data
+            }, status=status.HTTP_201_CREATED)
+        else:
+            return Response({
+                "success": False,
+                "errors": serializer.errors
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+    def put(self, request, pk=None, format=None):
+        batch = get_object_or_404(Batch, pk=pk)
+        serializer = ProcessedBatchSerializer(batch, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response({
+                "success": True,
+                "message": "Batch updated successfully",
+                "data": serializer.data
+            })
+        else:
+            return Response({
+                "success": False,
+                "errors": serializer.errors
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request, pk=None, format=None):
+        batch = get_object_or_404(Batch, pk=pk)
+        batch.delete()
+        return Response({
+            "success": True,
+            "message": "Batch deleted successfully",
+            "data": None
+        })
+    
+class MyProcessedBatchView(generics.ListAPIView):
+    serializer_class = ProcessedBatchDetailSerializer
+    def get_queryset(self):
+        processor = Processor.objects.get(user=self.request.user)
+        queryset = ProcessedBatch.objects.filter(processor=processor)
+        return queryset
+    
+class ProcessedStoreView(APIView):
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, pk=None, format=None):
+        if pk is not None:
+            store = get_object_or_404(ProcessedStore, pk=pk)
+            serializer = ProcessedStoreSerializer(store)  # Update with your actual serializer
+            return Response({
+                "success": True,
+                "message": "Store details",
+                "data": serializer.data
+            })
+        else:
+            stores = ProcessedStore.objects.all()
+            serializer = ProcessedStoreSerializer(stores, many=True)  # Update with your actual serializer
+            return Response({
+                "success": True,
+                "message": "Stores",
+                "data": serializer.data
+            })
+
+    def post(self, request, format=None):
+        serializer = ProcessedStoreSerializer(data=request.data, context={'request': request})  # Update with your actual serializer
+        if serializer.is_valid():
+            store = serializer.save()
+            return Response({
+                "success": True,
+                "message": "Store created successfully",
+                "data": serializer.data
+            }, status=status.HTTP_201_CREATED)
+        else:
+            return Response({
+                "success": False,
+                "errors": serializer.errors
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+    def put(self, request, pk=None, format=None):
+        store = get_object_or_404(ProcessedStore, pk=pk)
+        serializer = ProcessedStoreSerializer(store, data=request.data, partial=True, context={'request': request})  # Update with your actual serializer
+        if serializer.is_valid():
+            serializer.save()
+            return Response({
+                "success": True,
+                "message": "Store updated successfully",
+                "data": serializer.data
+            })
+        else:
+            return Response({
+                "success": False,
+                "errors": serializer.errors
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request, pk=None, format=None):
+        store = get_object_or_404(ProcessedStore, pk=pk)
+        store.delete()
+        return Response({
+            "success": True,
+            "message": "Store deleted successfully",
+            "data": None
+        })
+    
 class MarketView(APIView):
     def get(self, request, pk=None, format=None):
         if pk is not None:
@@ -656,7 +788,8 @@ class MarketView(APIView):
 class MyStoreView(generics.ListAPIView):
     serializer_class = StoreDetailSerializer
     def get_queryset(self):
-        queryset = Store.objects.filter(user=self.request.user)
+        collector = Collector.objects.get(user=self.request.user)
+        queryset = Store.objects.filter(collector=collector)
         return queryset
 
 # class OrderView(APIView):

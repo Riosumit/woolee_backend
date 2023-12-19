@@ -101,7 +101,12 @@ class BatchSerializer(serializers.ModelSerializer):
         request = self.context.get('request')
         user = request.user
         collector = Collector.objects.get(user=user)
+        producer_ids=validated_data.pop('producers', None)
+        producer_ids=request.data.get('producers', None)
         batch = Batch.objects.create(collector=collector, **validated_data)
+        producer_instances = Producer.objects.filter(pk__in=producer_ids)
+        batch.producers.set(producer_instances)
+
         return batch
         # return Batch.objects.create(**validated_data)
 
@@ -113,11 +118,18 @@ class BatchSerializer(serializers.ModelSerializer):
         instance.save()
         return instance
     
+class BatchDetailSerializer(serializers.ModelSerializer):
+    producers = ProducerSerializer(many=True)
+    class Meta:
+        model = Batch
+        fields = ['id', 'producers', 'type', 'quantity', 'qr_code', 'thickness', 'color', 'softness', 'quality_certificate_link']
+        read_only_fields = ['qr_code', 'collector']
+    
 class StoreSerializer(serializers.ModelSerializer):
     class Meta:
         model = Store
         fields = ['id', 'collector', 'batch', 'price', 'quantity_available']
-        read_only_fields = ['quantity_available', 'user']
+        read_only_fields = ['quantity_available', 'collector']
 
     def create(self, validated_data):
         batch = validated_data['batch']
@@ -147,7 +159,7 @@ class StoreSerializer(serializers.ModelSerializer):
     
 class StoreDetailSerializer(serializers.ModelSerializer):
     collector = CollectorSerializer()
-    batch = BatchSerializer()
+    batch = BatchDetailSerializer()
     class Meta:
         model = Store
         fields = ['id', 'collector', 'batch', 'price', 'quantity_available']
@@ -207,13 +219,13 @@ class ProcessedStoreSerializer(serializers.ModelSerializer):
         instance.save()
         return instance
     
-class StoreDetailSerializer(serializers.ModelSerializer):
-    prosessor = ProcessorSerializer()
-    processedbatch = ProcessedBatchDetailSerializer()
-    class Meta:
-        model = Store
-        fields = ['id', 'processor', 'processedbatch', 'price', 'quantity_available']
-        read_only_fields = ['quantity_available', 'processor']
+# class StoreDetailSerializer(serializers.ModelSerializer):
+#     prosessor = ProcessorSerializer()
+#     processedbatch = ProcessedBatchDetailSerializer()
+#     class Meta:
+#         model = Store
+#         fields = ['id', 'processor', 'processedbatch', 'price', 'quantity_available']
+#         read_only_fields = ['quantity_available', 'processor']
 
 # class OrderSerializer(serializers.ModelSerializer):
 #     class Meta:

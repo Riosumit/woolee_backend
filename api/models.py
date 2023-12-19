@@ -61,7 +61,7 @@ class ShearingRequest(models.Model):
     
 class Batch(models.Model):
     collector = models.ForeignKey(Collector, on_delete=models.CASCADE)
-    producers = models.ManyToManyField(Producer)
+    producers = models.ManyToManyField(Producer, null=True, blank=True)
     type = models.CharField(max_length=100, default="raw wool")
     quantity = models.PositiveIntegerField(default=0)
     qr_code = models.CharField(max_length=50, unique=True, blank=True, null=True)
