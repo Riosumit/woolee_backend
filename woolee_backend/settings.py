@@ -81,11 +81,11 @@ WSGI_APPLICATION = 'woolee_backend.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'trttcxih',
-        'USER': 'trttcxih',
-        'PASSWORD': 'F2Q8zE2882Www-OaPpyJdzhNxZ9YJF7k',
-        'HOST': 'rain.db.elephantsql.com',  
-        'PORT': '5432',
+        'NAME': 'railway',
+        'USER': 'postgres',
+        'PASSWORD': 'a5bg*B2CGGbdEa5a4bbfe22aF3*GdD2A',
+        'HOST': 'monorail.proxy.rlwy.net',  
+        'PORT': '16307',
     }
 }
 
