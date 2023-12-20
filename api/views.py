@@ -823,20 +823,34 @@ class ServiceView(APIView):
             "data": None
         })
     
+class MyServiceView(APIView):
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, pk=None, format=None):
+        processor = Processor.objects.get(user=request.user)
+        services = Service.objects.filter(processor=processor)
+        serializer = ServiceSerializer(services, many=True)
+        return Response({
+            "success": True,
+            "message": "My Services",
+            "data": serializer.data
+        })
+    
 class RequestedServiceView(APIView):
     authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated]
 
     def get(self, request, pk=None, format=None):
-            processor = Processor.objects.get(user=request.user)
-            services = Service.objects.filter(processor=processor)
-            service_request = ServiceRequest.objects.filter(service_icontains=service_request)
-            serializer = ServiceRequestSerializer(service_request, many=True)
-            return Response({
-                "success": True,
-                "message": "My Service Requests",
-                "data": serializer.data
-            })
+        processor = Processor.objects.get(user=request.user)
+        services = Service.objects.filter(processor=processor)
+        service_request = ServiceRequest.objects.filter(service__in=services)
+        serializer = ServiceRequestSerializer(service_request, many=True)
+        return Response({
+            "success": True,
+            "message": "My Service Requests",
+            "data": serializer.data
+        })
     
 class MyRequestedServiceView(APIView):
     authentication_classes = [TokenAuthentication]

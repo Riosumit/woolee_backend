@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import ProducerView, LoginView, RegisterView, IsLoginView, LogoutView, ProcessorView, CollectorView, ShearerView, ShearingRequestView, MyRequestView, RequestView, BatchView, MyBatchView, StoreView, MyStoreView, OrderView, SoldItemView, MyOrderView, ProcessedBatchView, MyProcessedBatchView, ProcessedStoreView, MyProcessedStoreView, MarketView, QRCodeView, CardingView, DyeingView, SpinningView, ProcessingView, ServiceView, ServiceRequestView, RequestedServiceView, MyRequestedServiceView
+from .views import ProducerView, LoginView, RegisterView, IsLoginView, LogoutView, ProcessorView, CollectorView, ShearerView, ShearingRequestView, MyRequestView, RequestView, BatchView, MyBatchView, StoreView, MyStoreView, OrderView, SoldItemView, MyOrderView, ProcessedBatchView, MyProcessedBatchView, ProcessedStoreView, MyProcessedStoreView, MarketView, QRCodeView, CardingView, DyeingView, SpinningView, ProcessingView, ServiceView, ServiceRequestView, RequestedServiceView, MyRequestedServiceView, MyServiceView
 
 urlpatterns = [
     path('register', RegisterView.as_view(), name='regiser'),
@@ -9,6 +9,7 @@ urlpatterns = [
     # path('profile', ProducerProfileView.as_view(), name='producer_profile'),
     path('producers', ProducerView.as_view(), name='producer_list'),
     path('producer/<int:pk>', ProducerView.as_view(), name='producer_detail'),
+    path('producer/service/requests', MyRequestedServiceView.as_view(), name='my_service_requests_list'),
     path('collectors', CollectorView.as_view(), name='collector_list'),
     path('collector/<int:pk>', CollectorView.as_view(), name='collector_detail'),
     path('shearers', ShearerView.as_view(), name='shearer_list'),
@@ -19,7 +20,6 @@ urlpatterns = [
     path('shearer/request', RequestView.as_view(), name='request_list'),
     path('processors', ProcessorView.as_view(), name='processor_list'),
     path('processor/<int:pk>', ProcessorView.as_view(), name='processor_detail'),
-    path('processor/service/requests', MyRequestedServiceView.as_view(), name='my_service_requests_list'),
     path('collector/batches', BatchView.as_view(), name='batch_list'),
     path('collector/batch/<int:pk>', BatchView.as_view(), name='batch_detail'),
     path('collector/mybatch', MyBatchView.as_view(), name='mybatch'),
@@ -33,8 +33,9 @@ urlpatterns = [
     path('processor/mybatch', MyProcessedBatchView.as_view(), name='mybatch'),
     path('processor/stores', ProcessedStoreView.as_view(), name='processed_store_list'),
     path('processor/mystore', MyProcessedStoreView.as_view(), name='my_store_list'),
-    path('processor/service', ServiceView.as_view(), name='service_list'),
+    path('processor/services', ServiceView.as_view(), name='service_list'),
     path('processor/service/requests', RequestedServiceView.as_view(), name='service_list'),
+    path('processor/myservices', MyServiceView.as_view(), name='my_services_list'),
     path('processor/carding', CardingView.as_view(), name='carding'),
     path('processor/dyeing', DyeingView.as_view(), name='dyeing'),
     path('processor/spinning', SpinningView.as_view(), name='spinning'),
