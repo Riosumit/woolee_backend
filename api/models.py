@@ -49,6 +49,18 @@ class Shearer(models.Model):
     def __str__(self):
         return self.shearing_company
     
+class Artisan(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    artisan_name = models.CharField(max_length=100)
+    phone = PhoneNumberField(blank=True, null=True)
+    pincode = models.CharField(max_length=100, blank=True, null=True)
+    district = models.CharField(max_length=100)
+    state = models.CharField(max_length=100)
+    experience_years = models.PositiveIntegerField()
+
+    def __str__(self):
+        return self.artisan_name
+    
 class ShearingRequest(models.Model):
     producer = models.ForeignKey(Producer, on_delete=models.CASCADE)
     shearer = models.ForeignKey(Shearer, on_delete=models.CASCADE)
@@ -108,6 +120,49 @@ class Order(models.Model):
 
     def __str__(self):
         return f"Order {self.order_id} for {self.customer.factory_name}"
+
+class ProducerBatch(models.Model):
+    producer = models.ForeignKey(Producer, on_delete=models.CASCADE)
+    type = models.CharField(max_length=100, default="raw wool")
+    quantity = models.PositiveIntegerField(default=0)
+    qr_code = models.CharField(max_length=50, unique=True, blank=True, null=True)
+    thickness = models.DecimalField(max_digits=5, decimal_places=2)
+    color = models.CharField(max_length=50)
+    softness = models.CharField(max_length=50)
+    production_date = models.DateField(auto_now_add=True)
+    quality_certificate_link = models.URLField(blank=True, null=True)
+
+    def save(self, *args, **kwargs):
+        if not self.qr_code:
+            self.qr_code = str(uuid.uuid4().hex)[:12].upper()
+
+        super().save(*args, **kwargs)
+
+class ProducerStore(models.Model):
+    producer = models.ForeignKey(Producer, on_delete=models.CASCADE)
+    batch = models.OneToOneField(ProducerBatch, on_delete=models.CASCADE)
+    price = models.DecimalField(max_digits=12, decimal_places=2)
+    quantity_available = models.PositiveIntegerField(default=0)
+
+    def __str__(self):
+        return f"{self.batch} - Price: {self.price} - Quantity Available: {self.quantity_available}"
+    
+class ProducerOrder(models.Model):
+    customer = models.ForeignKey(Artisan, on_delete=models.CASCADE)
+    store = models.ForeignKey(ProducerStore, on_delete=models.CASCADE)
+    quantity = models.IntegerField()
+    total_price = models.DecimalField(max_digits=10, decimal_places=2)
+    order_id = models.CharField(max_length=50, unique=True)
+    address = models.CharField(max_length=255)
+    pincode = models.CharField(max_length=10)
+    location = models.CharField(max_length=200, default="In Farm")
+    ref = models.CharField(max_length=100)
+
+    def save(self, *args, **kwargs):
+        if not self.order_id:
+            self.order_id = str(uuid.uuid4().hex)[:12].upper()
+
+        super().save(*args, **kwargs)
     
 class Service(models.Model):
     processor = models.ForeignKey(Processor, on_delete=models.CASCADE)
@@ -232,22 +287,23 @@ class Spinning(models.Model):
     def __str__(self):
         return f"{self.processor.username} - Spinning {self.spinning_date}"
 
-# class FabricStore(models.Model):
-#     artisian = models.ForeignKey(User, on_delete=models.CASCADE)
-#     image = models.URLField()
-#     processedbatch = models.ForeignKey(ProcessedBatch, on_delete=models.CASCADE)
-#     quantity = models.PositiveIntegerField(default=1)
-#     desc = models.CharField()
-#     qr_code = models.CharField(max_length=50, unique=True, blank=True, null=True)
-#     posted_on = models.DateField(auto_now_add=True)
-#     price = models.DecimalField(max_digits=12, decimal_places=2)
-#     quantity_available = models.PositiveIntegerField(default=1)
+class FabricStore(models.Model):
+    artisian = models.ForeignKey(User, on_delete=models.CASCADE)
+    image = models.URLField()
+    processedbatch = models.ManyToManyField(ProcessedBatch, blank=True)
+    producerbatch = models.ManyToManyField(ProducerBatch, blank=True)
+    quantity = models.PositiveIntegerField(default=1)
+    desc = models.CharField(max_length=255)
+    qr_code = models.CharField(max_length=50, unique=True, blank=True, null=True)
+    posted_on = models.DateField(auto_now_add=True)
+    price = models.DecimalField(max_digits=12, decimal_places=2)
+    quantity_available = models.PositiveIntegerField(default=1)
 
-#     def save(self, *args, **kwargs):
-#         if not self.qr_code:
-#             self.qr_code = str(uuid.uuid4().hex)[:12].upper()
+    def save(self, *args, **kwargs):
+        if not self.qr_code:
+            self.qr_code = str(uuid.uuid4().hex)[:12].upper()
 
-#         super().save(*args, **kwargs)
+        super().save(*args, **kwargs)
 
     
 # class Case(models.Model):

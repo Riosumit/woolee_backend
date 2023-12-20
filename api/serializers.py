@@ -220,6 +220,72 @@ class OrderDetailSerializer(serializers.ModelSerializer):
         fields = ['id', 'customer', 'store', 'quantity', 'total_price', 'order_id', 'address', 'pincode', 'location', 'ref']
         read_only_fields = ['customer', 'order_id', 'total_price']
 
+class ProcessedBatchSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ProcessedBatch
+        fields = '__all__'
+        read_only_fields = ['qr_code', 'processor', 'batch']
+
+    def create(self, validated_data):
+        request = self.context.get('request')
+        user = request.user
+        order = Order.objects.get(id=request.data.get('order'))
+        batch = order.store.batch
+        qr_code = order.store.batch.qr_code
+        quantity = order.quantity
+        processor = Processor.objects.get(user=user)
+        processedbatch = ProcessedBatch.objects.create(processor=processor, batch=batch, qr_code=qr_code, raw_quantity=quantity, **validated_data)
+        return processedbatch
+        # return Batch.objects.create(**validated_data)
+    
+class ProcessedBatchDetailSerializer(serializers.ModelSerializer):
+    processor = ProcessorSerializer()
+    batch = BatchDetailSerializer()
+    class Meta:
+        model = ProcessedBatch
+        fields = ['id', 'processor', 'batch', 'raw_quantity', 'processed_quantity', 'qr_code', 'production_date', 'cleanliness', 'texture', 'color']
+        read_only_fields = ['qr_code', 'processor']
+    
+class ProcessedStoreSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ProcessedStore
+        fields = ['id', 'processor', 'processedbatch', 'price', 'quantity_available']
+        read_only_fields = ['quantity_available', 'processor']
+
+    def create(self, validated_data):
+        batch = validated_data['processedbatch']
+        price = validated_data['price']
+        request = self.context.get('request')
+        user = request.user
+        processor = Processor.objects.get(user=user)
+        quantity_available = batch.processed_quantity
+
+        store_data = {
+            'processor': processor,
+            'processedbatch': batch,
+            'price': price,
+            'quantity_available': quantity_available,
+        }
+
+        store = ProcessedStore.objects.create(**store_data)
+        return store
+    
+    def update(self, instance, validated_data):
+        request_data = self.context['request'].data
+        new_quantity_available = request_data.get('quantity', instance.quantity_available)
+        instance.quantity_available = new_quantity_available
+        instance.price = validated_data.get('price', instance.price)
+        instance.save()
+        return instance
+    
+class ProcessedStoreDetailSerializer(serializers.ModelSerializer):
+    # prosessor = ProcessorSerializer()
+    processedbatch = ProcessedBatchDetailSerializer()
+    class Meta:
+        model = ProcessedStore
+        fields = ['id', 'processor', 'processedbatch', 'price', 'quantity_available']
+        read_only_fields = ['quantity_available', 'processor']
+
 class ServiceSerializer(serializers.ModelSerializer):
     class Meta:
         model = Service
@@ -231,7 +297,7 @@ class ServiceSerializer(serializers.ModelSerializer):
         user = request.user
         processor = Processor.objects.get(user=user)
         service_request = Service.objects.create(
-            producer=processor,
+            processor=processor,
             **validated_data
         )
 
