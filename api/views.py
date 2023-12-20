@@ -708,6 +708,36 @@ class OrderView(APIView):
             "data": None
         })
     
+class SoldItemView(APIView):
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, pk=None, format=None):
+        if pk is not None:
+            order = get_object_or_404(Order, pk=pk)
+            serializer = OrderDetailSerializer(order)
+            return Response({
+                "success": True,
+                "message": "Order details",
+                "data": serializer.data
+            })
+        else:
+            collector = Collector.objects.get(user=request.user)
+            stores = Store.objects.filter(collector=collector)
+            if stores.exists():
+                orders = Order.objects.filter(store__in=stores)
+                serializer = OrderDetailSerializer(orders, many=True)
+                return Response({
+                    "success": True,
+                    "message": "Orders",
+                    "data": serializer.data
+                })
+            return Response({
+                    "success": True,
+                    "message": "No Items available",
+                    "data": []
+                })
+
 class MyOrderView(APIView):
     authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated]
@@ -881,44 +911,18 @@ class MarketView(APIView):
             })
         else:
             stores = Store.objects.all()
-            serializer = StoreDetailSerializer(stores, many=True)
-
+            serializer1 = StoreDetailSerializer(stores, many=True)
+            processedstores = ProcessedStore.objects.all()
+            serializer2 = ProcessedStoreDetailSerializer(processedstores, many=True)
             return Response({
                 "success": True,
                 "message": "Market",
                 "data": {
-                    "stores": serializer.data
+                    "raw_wool": serializer1.data,
+                    "processed_wool": serializer2.data
                 }
             })
     
     
-# class SoldItemView(APIView):
-#     authentication_classes = [TokenAuthentication]
-#     permission_classes = [IsAuthenticated]
 
-#     def get(self, request, pk=None, format=None):
-#         if pk is not None:
-#             order = get_object_or_404(Order, pk=pk)
-#             serializer = OrderDetailSerializer(order)
-#             return Response({
-#                 "success": True,
-#                 "message": "Order details",
-#                 "data": serializer.data
-#             })
-#         else:
-#             store = Store.objects.get(user=request.user)
-#             if store:
-#                 print(store)
-#                 orders = Order.objects.filter(store=store)
-#                 serializer = OrderDetailSerializer(orders, many=True)
-#                 return Response({
-#                     "success": True,
-#                     "message": "Orders",
-#                     "data": serializer.data
-#                 })
-#             return Response({
-#                     "success": True,
-#                     "message": "No Items avalable",
-#                     "data": []
-#                 })
         

@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import ProducerView, LoginView, RegisterView, IsLoginView, LogoutView, ProcessorView, CollectorView, ShearerView, ShearingRequestView, MyRequestView, RequestView, BatchView, MyBatchView, StoreView, MyStoreView, OrderView, MyOrderView, ProcessedBatchView, MyProcessedBatchView, ProcessedStoreView, MyProcessedStoreView, MarketView, QRCodeView
+from .views import ProducerView, LoginView, RegisterView, IsLoginView, LogoutView, ProcessorView, CollectorView, ShearerView, ShearingRequestView, MyRequestView, RequestView, BatchView, MyBatchView, StoreView, MyStoreView, OrderView, SoldItemView, MyOrderView, ProcessedBatchView, MyProcessedBatchView, ProcessedStoreView, MyProcessedStoreView, MarketView, QRCodeView
 
 urlpatterns = [
     path('register', RegisterView.as_view(), name='regiser'),
@@ -26,6 +26,7 @@ urlpatterns = [
     path('collector/mystore', MyStoreView.as_view(), name='my_store_list'),
     path('collector/store/<int:pk>', StoreView.as_view(), name='store_detail'),
     path('collector/orders', OrderView.as_view(), name='order_list'),
+    path('collector/solditems', SoldItemView.as_view(), name='sold_items_list'),
     path('processor/batches', ProcessedBatchView.as_view(), name='processed_batch_list'),
     path('processor/batch/<int:pk>', ProcessedBatchView.as_view(), name='processed_batch_detail'),
     path('processor/mybatch', MyProcessedBatchView.as_view(), name='mybatch'),
@@ -33,9 +34,9 @@ urlpatterns = [
     path('processor/mystore', MyProcessedStoreView.as_view(), name='my_store_list'),
     path('processor/store/<int:pk>', ProcessedStoreView.as_view(), name='store_detail'),
     path('market', MarketView.as_view(), name='market_list'),
-    path('product/<int:pk>', MarketView.as_view(), name='Product_details'),
+    path('raw_wool/<int:pk>', StoreView.as_view(), name='Product_details'),
+    path('processed_wool/<int:pk>', ProcessedStoreView.as_view(), name='Product_details'),
     path('processor/myorders', MyOrderView.as_view(), name='my_order_list'),
-    # path('solditems', SoldItemView.as_view(), name='sold_items_list'),
     # path('order/<int:pk>', OrderView.as_view(), name='order_detail'),
     path('qr_code', QRCodeView.as_view(), name='qr_code'),
     path('qrcode/<int:pk>', QRCodeView.as_view(), name='qrcode'),
