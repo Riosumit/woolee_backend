@@ -13,8 +13,8 @@ import qrcode
 from django.http import HttpResponse
 from django.views import View
 from rest_framework.authtoken.models import Token
-from .models import Producer, Collector, Processor, Shearer, ShearingRequest, Batch, Store, ProcessedBatch, ProcessedStore
-from .serializers import UserSerializer, ProducerSerializer, CollectorSerializer, ProcessorSerializer, ShearerSerializer, ShearingRequestSerializer, BatchSerializer, BatchDetailSerializer, StoreSerializer, StoreDetailSerializer, ProcessedStoreSerializer, ProcessedBatchSerializer, ProcessedBatchDetailSerializer
+from .models import Producer, Collector, Processor, Shearer, ShearingRequest, Batch, Store, Order, ProcessedBatch, ProcessedStore
+from .serializers import UserSerializer, ProducerSerializer, CollectorSerializer, ProcessorSerializer, ShearerSerializer, ShearingRequestSerializer, BatchSerializer, BatchDetailSerializer, StoreSerializer, StoreDetailSerializer, OrderSerializer, OrderDetailSerializer, ProcessedStoreSerializer, ProcessedBatchSerializer, ProcessedBatchDetailSerializer, ProcessedStoreDetailSerializer
 
 # class CsrfExemptSessionAuthentication(SessionAuthentication):
 #     def enforce_csrf(self, request):
@@ -632,6 +632,98 @@ class StoreView(APIView):
             "data": None
         })
     
+class OrderView(APIView):
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, pk=None, format=None):
+        if pk is not None:
+            order = get_object_or_404(Order, pk=pk)
+            serializer = OrderDetailSerializer(order)
+            return Response({
+                "success": True,
+                "message": "Order details",
+                "data": serializer.data
+            })
+        else:
+            orders = Order.objects.all()
+            serializer = OrderDetailSerializer(orders, many=True)
+            return Response({
+                "success": True,
+                "message": "Orders",
+                "data": serializer.data
+            })
+
+    def post(self, request, format=None):
+        store_id = request.data.get("store")
+        mystore = Store.objects.get(id=store_id)
+        if mystore and mystore.collector.user == request.user:
+            return Response({
+                "success": False,
+                "message": "Can't buy your own Product"
+            }, status=status.HTTP_400_BAD_REQUEST)
+        serializer = OrderSerializer(data=request.data, context={'request': request})
+        if serializer.is_valid():
+            serializer.save()
+            return Response({
+                "success": True,
+                "message": "Order created successfully",
+                "data": serializer.data
+            }, status=status.HTTP_201_CREATED)
+        else:
+            return Response({
+                "success": False,
+                "errors": serializer.errors
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+    def put(self, request, pk=None, format=None):
+        order = get_object_or_404(Order, pk=pk)
+        serializer = OrderSerializer(order, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response({
+                "success": True,
+                "message": "Order updated successfully",
+                "data": serializer.data
+            })
+        else:
+            return Response({
+                "success": False,
+                "errors": serializer.errors
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request, pk=None, format=None):
+        order = get_object_or_404(Order, pk=pk)
+        order.delete()
+        return Response({
+            "success": True,
+            "message": "Order deleted successfully",
+            "data": None
+        })
+    
+class MyOrderView(APIView):
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, pk=None, format=None):
+        if pk is not None:
+            order = get_object_or_404(Order, pk=pk)
+            serializer = OrderDetailSerializer(order)
+            return Response({
+                "success": True,
+                "message": "Order details",
+                "data": serializer.data
+            })
+        else:
+            processor = Processor.objects.get(user=request.user)
+            orders = Order.objects.filter(customer=processor)
+            serializer = OrderDetailSerializer(orders, many=True)
+            return Response({
+                "success": True,
+                "message": "Orders",
+                "data": serializer.data
+            })
+    
 class ProcessedBatchView(APIView):
     authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated]
@@ -646,8 +738,8 @@ class ProcessedBatchView(APIView):
                 "data": serializer.data
             })
         else:
-            batches = Batch.objects.all()
-            serializer = ProcessedBatchSerializer(batches, many=True)
+            batches = ProcessedBatch.objects.all()
+            serializer = ProcessedBatchDetailSerializer(batches, many=True)
             return Response({
                 "success": True,
                 "message": "Batches",
@@ -708,7 +800,7 @@ class ProcessedStoreView(APIView):
     def get(self, request, pk=None, format=None):
         if pk is not None:
             store = get_object_or_404(ProcessedStore, pk=pk)
-            serializer = ProcessedStoreSerializer(store)  # Update with your actual serializer
+            serializer = ProcessedStoreDetailSerializer(store)  # Update with your actual serializer
             return Response({
                 "success": True,
                 "message": "Store details",
@@ -716,7 +808,7 @@ class ProcessedStoreView(APIView):
             })
         else:
             stores = ProcessedStore.objects.all()
-            serializer = ProcessedStoreSerializer(stores, many=True)  # Update with your actual serializer
+            serializer = ProcessedStoreDetailSerializer(stores, many=True)  # Update with your actual serializer
             return Response({
                 "success": True,
                 "message": "Stores",
@@ -791,75 +883,6 @@ class MyStoreView(generics.ListAPIView):
         collector = Collector.objects.get(user=self.request.user)
         queryset = Store.objects.filter(collector=collector)
         return queryset
-
-# class OrderView(APIView):
-#     authentication_classes = [TokenAuthentication]
-#     permission_classes = [IsAuthenticated]
-
-#     def get(self, request, pk=None, format=None):
-#         if pk is not None:
-#             order = get_object_or_404(Order, pk=pk)
-#             serializer = OrderDetailSerializer(order)
-#             return Response({
-#                 "success": True,
-#                 "message": "Order details",
-#                 "data": serializer.data
-#             })
-#         else:
-#             orders = Order.objects.all()
-#             serializer = OrderDetailSerializer(orders, many=True)
-#             return Response({
-#                 "success": True,
-#                 "message": "Orders",
-#                 "data": serializer.data
-#             })
-
-#     def post(self, request, format=None):
-#         store_id = request.data.get("store")
-#         mystore = Store.objects.get(id=store_id)
-#         if mystore and mystore.producer.user == request.user:
-#             return Response({
-#                 "success": False,
-#                 "message": "Can't buy your own Product"
-#             }, status=status.HTTP_400_BAD_REQUEST)
-#         serializer = OrderSerializer(data=request.data, context={'request': request})
-#         if serializer.is_valid():
-#             serializer.save()
-#             return Response({
-#                 "success": True,
-#                 "message": "Order created successfully",
-#                 "data": serializer.data
-#             }, status=status.HTTP_201_CREATED)
-#         else:
-#             return Response({
-#                 "success": False,
-#                 "errors": serializer.errors
-#             }, status=status.HTTP_400_BAD_REQUEST)
-
-#     def put(self, request, pk=None, format=None):
-#         order = get_object_or_404(Order, pk=pk)
-#         serializer = OrderSerializer(order, data=request.data)
-#         if serializer.is_valid():
-#             serializer.save()
-#             return Response({
-#                 "success": True,
-#                 "message": "Order updated successfully",
-#                 "data": serializer.data
-#             })
-#         else:
-#             return Response({
-#                 "success": False,
-#                 "errors": serializer.errors
-#             }, status=status.HTTP_400_BAD_REQUEST)
-
-#     def delete(self, request, pk=None, format=None):
-#         order = get_object_or_404(Order, pk=pk)
-#         order.delete()
-#         return Response({
-#             "success": True,
-#             "message": "Order deleted successfully",
-#             "data": None
-#         })
     
 # class SoldItemView(APIView):
 #     authentication_classes = [TokenAuthentication]
@@ -891,24 +914,3 @@ class MyStoreView(generics.ListAPIView):
 #                     "data": []
 #                 })
         
-# class MyOrderView(APIView):
-#     authentication_classes = [TokenAuthentication]
-#     permission_classes = [IsAuthenticated]
-
-#     def get(self, request, pk=None, format=None):
-#         if pk is not None:
-#             order = get_object_or_404(Order, pk=pk)
-#             serializer = OrderDetailSerializer(order)
-#             return Response({
-#                 "success": True,
-#                 "message": "Order details",
-#                 "data": serializer.data
-#             })
-#         else:
-#             orders = Order.objects.filter(customer=request.user)
-#             serializer = OrderDetailSerializer(orders, many=True)
-#             return Response({
-#                 "success": True,
-#                 "message": "Orders",
-#                 "data": serializer.data
-#             })

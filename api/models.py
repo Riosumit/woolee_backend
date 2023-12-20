@@ -89,6 +89,26 @@ class Store(models.Model):
     def __str__(self):
         return f"{self.batch} - Price: {self.price} - Quantity Available: {self.quantity_available}"
     
+class Order(models.Model):
+    customer = models.ForeignKey(Processor, on_delete=models.CASCADE)
+    store = models.ForeignKey(Store, on_delete=models.CASCADE)
+    quantity = models.IntegerField()
+    total_price = models.DecimalField(max_digits=10, decimal_places=2)
+    order_id = models.CharField(max_length=50, unique=True)
+    address = models.CharField(max_length=255)
+    pincode = models.CharField(max_length=10)
+    location = models.CharField(max_length=200, default="In Farm")
+    ref = models.CharField(max_length=100)
+
+    def save(self, *args, **kwargs):
+        if not self.order_id:
+            self.order_id = str(uuid.uuid4().hex)[:12].upper()
+
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f"Order {self.order_id} for {self.customer.factory_name}"
+    
 class ProcessedBatch(models.Model):
     processor = models.ForeignKey(Processor, on_delete=models.CASCADE)
     batch = models.ForeignKey(Batch, on_delete=models.CASCADE)
