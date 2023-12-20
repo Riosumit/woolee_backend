@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Producer, Collector, Processor, Shearer, ShearingRequest, Batch, Store, Order, ProcessedBatch, ProcessedStore, Processing, Carding, Dyeing, Spinning
+from .models import Producer, Collector, Processor, Shearer, ShearingRequest, Batch, Store, Order, ProcessedBatch, ProcessedStore, Processing, Carding, Dyeing, Spinning, Service, ServiceRequest
 from django.contrib.auth.models import User
 from django.shortcuts import get_object_or_404
 
@@ -220,6 +220,38 @@ class OrderDetailSerializer(serializers.ModelSerializer):
         fields = ['id', 'customer', 'store', 'quantity', 'total_price', 'order_id', 'address', 'pincode', 'location', 'ref']
         read_only_fields = ['customer', 'order_id', 'total_price']
 
+class ServiceSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Service
+        fields = '__all__'
+        read_only_fields = ['processor']
+
+    def create(self, validated_data):
+        request = self.context.get('request')
+        user = request.user
+        producer = Producer.objects.get(user=user)
+        service_request = ServiceRequest.objects.create(
+            producer=producer,
+            **validated_data
+        )
+
+class ServiceRequestSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ServiceRequest
+        fields = '__all__'
+        read_only_fields = ['producer', 'request_date', 'status']
+
+    def create(self, validated_data):
+        request = self.context.get('request')
+        user = request.user
+        producer = Producer.objects.get(user=user)
+        service_request = ServiceRequest.objects.create(
+            producer=producer,
+            **validated_data
+        )
+
+        return service_request
+
 class ProcessedBatchSerializer(serializers.ModelSerializer):
     class Meta:
         model = ProcessedBatch
@@ -243,7 +275,7 @@ class ProcessedBatchDetailSerializer(serializers.ModelSerializer):
     batch = BatchDetailSerializer()
     class Meta:
         model = ProcessedBatch
-        fields = ['id', 'processor', 'batch', 'type', 'raw_quantity', 'processed_quantity', 'qr_code', 'production_date', 'cleanliness', 'texture', 'color']
+        fields = ['id', 'processor', 'batch', 'raw_quantity', 'processed_quantity', 'qr_code', 'production_date', 'cleanliness', 'texture', 'color']
         read_only_fields = ['qr_code', 'processor']
     
 class ProcessedStoreSerializer(serializers.ModelSerializer):
