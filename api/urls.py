@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import ProducerView, LoginView, RegisterView, IsLoginView, LogoutView, ProcessorView, CollectorView, ShearerView, ShearingRequestView, MyRequestView, RequestView, BatchView, MyBatchView, StoreView, MyStoreView, OrderView, SoldItemView, MyOrderView, ProcessedBatchView, MyProcessedBatchView, ProcessedStoreView, MyProcessedStoreView, MarketView, QRCodeView, CardingView, DyeingView, SpinningView, ProcessingView, ServiceView, ServiceRequestView, RequestedServiceView, MyRequestedServiceView, MyServiceView
+from .views import ProducerView, LoginView, RegisterView, IsLoginView, LogoutView, ProcessorView, CollectorView, ShearerView, ShearingRequestView, MyRequestView, RequestView, BatchView, MyBatchView, StoreView, MyStoreView, OrderView, SoldItemView, MyOrderView, ProcessedBatchView, MyProcessedBatchView, ProcessedStoreView, MyProcessedStoreView, MarketView, QRCodeView, CardingView, DyeingView, SpinningView, ProcessingView, ServiceView, ServiceRequestView, RequestedServiceView, MyRequestedServiceView, MyServiceView, MyProcessedOrderView, MyProducerBatchView, MyProducerOrderView, MyProducerStoreView, ProducerBatchView, ProducerOrderView, ProducerSoldItemView, ProducerStoreView
 
 urlpatterns = [
     path('register', RegisterView.as_view(), name='regiser'),
@@ -34,8 +34,10 @@ urlpatterns = [
     path('processor/stores', ProcessedStoreView.as_view(), name='processed_store_list'),
     path('processor/mystore', MyProcessedStoreView.as_view(), name='my_store_list'),
     path('processor/services', ServiceView.as_view(), name='service_list'),
+    path('processor/service/<int:pk>', ServiceView.as_view(), name='service_details'),
     path('processor/service/requests', RequestedServiceView.as_view(), name='service_list'),
     path('processor/myservices', MyServiceView.as_view(), name='my_services_list'),
+    path('processor/orders', MyProcessedOrderView.as_view(), name='my_services_list'),
     path('processor/carding', CardingView.as_view(), name='carding'),
     path('processor/dyeing', DyeingView.as_view(), name='dyeing'),
     path('processor/spinning', SpinningView.as_view(), name='spinning'),

@@ -225,7 +225,7 @@ class ProcessorOrder(models.Model):
         super().save(*args, **kwargs)
 
 class ProcessedOrder(models.Model):
-    customer = models.ForeignKey(User, on_delete=models.CASCADE)
+    customer = models.ForeignKey(Artisan, on_delete=models.CASCADE)
     processedstore = models.ForeignKey(ProcessedStore, on_delete=models.CASCADE)
     quantity = models.IntegerField()
     total_price = models.DecimalField(max_digits=10, decimal_places=2)
