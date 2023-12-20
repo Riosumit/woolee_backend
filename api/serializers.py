@@ -31,6 +31,13 @@ class CollectorSerializer(serializers.ModelSerializer):
         user = request.user
         collector = Collector.objects.create(user=user, **validated_data)
         return collector
+
+class CollectorDetailSerializer(serializers.ModelSerializer):
+    user = UserSerializer()
+    class Meta:
+        model = Collector
+        fields = ['id', 'user', 'district', 'state']
+        read_only_fields = ['user']
     
 class ShearerSerializer(serializers.ModelSerializer):
     class Meta:
@@ -158,7 +165,7 @@ class StoreSerializer(serializers.ModelSerializer):
         return instance
     
 class StoreDetailSerializer(serializers.ModelSerializer):
-    collector = CollectorSerializer()
+    collector = CollectorDetailSerializer()
     batch = BatchDetailSerializer()
     class Meta:
         model = Store
