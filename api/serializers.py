@@ -229,9 +229,9 @@ class ServiceSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         request = self.context.get('request')
         user = request.user
-        producer = Producer.objects.get(user=user)
-        service_request = ServiceRequest.objects.create(
-            producer=producer,
+        processor = Processor.objects.get(user=user)
+        service_request = Service.objects.create(
+            producer=processor,
             **validated_data
         )
 
@@ -239,7 +239,7 @@ class ServiceRequestSerializer(serializers.ModelSerializer):
     class Meta:
         model = ServiceRequest
         fields = '__all__'
-        read_only_fields = ['producer', 'request_date', 'status']
+        read_only_fields = ['producer', 'request_date']
 
     def create(self, validated_data):
         request = self.context.get('request')
@@ -263,7 +263,7 @@ class ProcessedBatchSerializer(serializers.ModelSerializer):
         user = request.user
         order = Order.objects.get(id=request.data.get('order'))
         batch = order.store.batch
-        qr_code = order.store.qr_code
+        qr_code = order.store.batch.qr_code
         quantity = order.quantity
         processor = Processor.objects.get(user=user)
         processedbatch = ProcessedBatch.objects.create(processor=processor, batch=batch, qr_code=qr_code, raw_quantity=quantity, **validated_data)
