@@ -1345,10 +1345,10 @@ class MarketView(APIView):
                 "data": [serializer.data]  # Wrap serializer.data in a list
             })
         else:
-            stores = Order.objects.all()
-            serializer1 = OrderDetailSerializer(stores, many=True)
-            processedstores = ProcessedOrder.objects.all()
-            serializer2 = ProcessedOrderDetailSerializer(processedstores, many=True)
+            stores = Store.objects.all()
+            serializer1 = StoreDetailSerializer(stores, many=True)
+            processedstores = ProcessedStore.objects.all()
+            serializer2 = ProcessedStoreDetailSerializer(processedstores, many=True)
             return Response({
                 "success": True,
                 "message": "Market",
