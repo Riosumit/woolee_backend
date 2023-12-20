@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Producer, Collector, Processor, Shearer, ShearingRequest, Batch, Store, Order, ProcessedBatch, ProcessedStore, Processing, Carding, Dyeing, Spinning, Service, ServiceRequest
+from .models import Producer, Collector, Processor, Shearer, ShearingRequest, Batch, Store, Order, ProcessedBatch, ProcessedStore, Processing, Carding, Dyeing, Spinning, Service, ServiceRequest, ProducerBatch, ProducerStore, ProducerOrder
 from django.contrib.auth.models import User
 from django.shortcuts import get_object_or_404
 
@@ -220,11 +220,11 @@ class OrderDetailSerializer(serializers.ModelSerializer):
         fields = ['id', 'customer', 'store', 'quantity', 'total_price', 'order_id', 'address', 'pincode', 'location', 'ref']
         read_only_fields = ['customer', 'order_id', 'total_price']
 
-class ProcessedBatchSerializer(serializers.ModelSerializer):
+class ProducerBatchSerializer(serializers.ModelSerializer):
     class Meta:
-        model = ProcessedBatch
+        model = ProducerBatch
         fields = '__all__'
-        read_only_fields = ['qr_code', 'processor', 'batch']
+        read_only_fields = ['qr_code', 'producer', 'batch']
 
     def create(self, validated_data):
         request = self.context.get('request')
@@ -300,6 +300,7 @@ class ServiceSerializer(serializers.ModelSerializer):
             processor=processor,
             **validated_data
         )
+        return service_request
 
 class ServiceRequestSerializer(serializers.ModelSerializer):
     class Meta:
@@ -315,7 +316,6 @@ class ServiceRequestSerializer(serializers.ModelSerializer):
             producer=producer,
             **validated_data
         )
-
         return service_request
 
 class ProcessedBatchSerializer(serializers.ModelSerializer):
