@@ -822,6 +822,35 @@ class ServiceView(APIView):
             "message": "Service deleted successfully",
             "data": None
         })
+    
+class RequestedServiceView(APIView):
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, pk=None, format=None):
+            processor = Processor.objects.get(user=request.user)
+            services = Service.objects.filter(processor=processor)
+            service_request = ServiceRequest.objects.filter(service_icontains=service_request)
+            serializer = ServiceRequestSerializer(service_request, many=True)
+            return Response({
+                "success": True,
+                "message": "My Service Requests",
+                "data": serializer.data
+            })
+    
+class MyRequestedServiceView(APIView):
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, pk=None, format=None):
+            producer = Producer.objects.get(user=request.user)
+            services = Service.objects.filter(producer=producer)
+            serializer = ServiceSerializer(services, many=True)
+            return Response({
+                "success": True,
+                "message": "Services",
+                "data": serializer.data
+            })
 
 class ServiceRequestView(APIView):
     authentication_classes = [TokenAuthentication]
