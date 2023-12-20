@@ -14,7 +14,7 @@ from django.http import HttpResponse
 from django.views import View
 from rest_framework.authtoken.models import Token
 from .models import Producer, Collector, Processor, Shearer, ShearingRequest, Batch, Store, Order, ProcessedBatch, ProcessedStore, Carding, Dyeing, Spinning, Processing, Service, ServiceRequest, ProducerBatch, ProducerStore, ProducerOrder, ProcessedOrder
-from .serializers import UserSerializer, ProducerSerializer, CollectorSerializer, ProcessorSerializer, ShearerSerializer, ShearingRequestSerializer, BatchSerializer, BatchDetailSerializer, StoreSerializer, StoreDetailSerializer, OrderSerializer, OrderDetailSerializer, ProcessedStoreSerializer, ProcessedBatchSerializer, ProcessedBatchDetailSerializer, ProcessedStoreDetailSerializer, ProcessedOrderSerializer, ProcessedOrderDetailSerializer, CardingSerializer, DyeingSerializer, SpinningSerializer, ProcessingSerializer, ServiceRequestSerializer, ServiceSerializer, ProducerBatchDetailSerializer, ProducerBatchSerializer, ProducerStoreSerializer, ProducerOrderSerializer
+from .serializers import UserSerializer, ProducerSerializer, CollectorSerializer, ProcessorSerializer, ShearerSerializer, ShearerDetailSerializer, ShearingRequestSerializer, BatchSerializer, BatchDetailSerializer, StoreSerializer, StoreDetailSerializer, OrderSerializer, OrderDetailSerializer, ProcessedStoreSerializer, ProcessedBatchSerializer, ProcessedBatchDetailSerializer, ProcessedStoreDetailSerializer, ProcessedOrderSerializer, ProcessedOrderDetailSerializer, CardingSerializer, DyeingSerializer, SpinningSerializer, ProcessingSerializer, ServiceRequestSerializer, ServiceSerializer, ProducerBatchDetailSerializer, ProducerBatchSerializer, ProducerStoreSerializer, ProducerOrderSerializer
 
 # class CsrfExemptSessionAuthentication(SessionAuthentication):
 #     def enforce_csrf(self, request):
@@ -244,7 +244,7 @@ class ShearerView(APIView):
             })
         else:
             shearers = Shearer.objects.all()
-            serializer = ShearerSerializer(shearers, many=True)
+            serializer = ShearerDetailSerializer(shearers, many=True)
             return Response({
                 "success": True,
                 "message": "Shearers",

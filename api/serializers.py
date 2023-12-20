@@ -51,6 +51,13 @@ class ShearerSerializer(serializers.ModelSerializer):
         shearer = Shearer.objects.create(user=user, **validated_data)
         return shearer
     
+class ShearerDetailSerializer(serializers.ModelSerializer):
+    user=UserSerializer()
+    class Meta:
+        model = Shearer
+        fields = ['id', 'user', 'shearing_company', 'phone', 'pincode', 'district', 'state', 'experience_years']
+        read_only_fields = ['user']
+    
 class ArtisianSerializer(serializers.ModelSerializer):
     class Meta:
         model = Artisan
