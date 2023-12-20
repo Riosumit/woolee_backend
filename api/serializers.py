@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Producer, Collector, Processor, Shearer, ShearingRequest, Batch, Store, Order, ProcessedBatch, ProcessedStore
+from .models import Producer, Collector, Processor, Shearer, ShearingRequest, Batch, Store, Order, ProcessedBatch, ProcessedStore, Processing, Carding, Dyeing, Spinning
 from django.contrib.auth.models import User
 from django.shortcuts import get_object_or_404
 
@@ -231,8 +231,10 @@ class ProcessedBatchSerializer(serializers.ModelSerializer):
         user = request.user
         order = Order.objects.get(id=request.data.get('order'))
         batch = order.store.batch
+        qr_code = order.store.qr_code
+        quantity = order.quantity
         processor = Processor.objects.get(user=user)
-        processedbatch = ProcessedBatch.objects.create(processor=processor, batch=batch, **validated_data)
+        processedbatch = ProcessedBatch.objects.create(processor=processor, batch=batch, qr_code=qr_code, raw_quantity=quantity, **validated_data)
         return processedbatch
         # return Batch.objects.create(**validated_data)
     
@@ -284,3 +286,70 @@ class ProcessedStoreDetailSerializer(serializers.ModelSerializer):
         fields = ['id', 'processor', 'processedbatch', 'price', 'quantity_available']
         read_only_fields = ['quantity_available', 'processor']
 
+class ProcessingSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Processing
+        fields = '__all__'
+
+class CardingSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Carding
+        fields = '__all__'
+        read_only_fields = ['processor']
+
+    def create(self, validated_data):
+        request = self.context.get('request')
+        user = request.user
+        processor = Processor.objects.get(user=user)
+        carding = Carding.objects.create(processor=processor, **validated_data)
+        processing = {
+            'batch': request.data.get('batch'),
+            'process': 'carding',
+            'process_id': carding.id
+        }
+        serializer = ProcessingSerializer(data=processing)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return carding
+
+class DyeingSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Dyeing
+        fields = '__all__'
+        read_only_fields = ['processor']
+
+    def create(self, validated_data):
+        request = self.context.get('request')
+        user = request.user
+        processor = Processor.objects.get(user=user)
+        dyeing = Dyeing.objects.create(processor=processor, **validated_data)
+        processing = {
+            'batch': request.data.get('batch'),
+            'process': 'dyeing',
+            'process_id': dyeing.id
+        }
+        serializer = ProcessingSerializer(data=processing)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return dyeing
+
+class SpinningSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Spinning
+        fields = '__all__'
+        read_only_fields = ['processor']
+
+    def create(self, validated_data):
+        request = self.context.get('request')
+        user = request.user
+        processor = Processor.objects.get(user=user)
+        spinning = Spinning.objects.create(processor=processor, **validated_data)
+        processing = {
+            'batch': request.data.get('batch'),
+            'process': 'spinning',
+            'process_id': spinning.id
+        }
+        serializer = ProcessingSerializer(data=processing)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return spinning

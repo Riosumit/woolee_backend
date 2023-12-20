@@ -13,8 +13,8 @@ import qrcode
 from django.http import HttpResponse
 from django.views import View
 from rest_framework.authtoken.models import Token
-from .models import Producer, Collector, Processor, Shearer, ShearingRequest, Batch, Store, Order, ProcessedBatch, ProcessedStore
-from .serializers import UserSerializer, ProducerSerializer, CollectorSerializer, ProcessorSerializer, ShearerSerializer, ShearingRequestSerializer, BatchSerializer, BatchDetailSerializer, StoreSerializer, StoreDetailSerializer, OrderSerializer, OrderDetailSerializer, ProcessedStoreSerializer, ProcessedBatchSerializer, ProcessedBatchDetailSerializer, ProcessedStoreDetailSerializer
+from .models import Producer, Collector, Processor, Shearer, ShearingRequest, Batch, Store, Order, ProcessedBatch, ProcessedStore, Carding, Dyeing, Spinning, Processing
+from .serializers import UserSerializer, ProducerSerializer, CollectorSerializer, ProcessorSerializer, ShearerSerializer, ShearingRequestSerializer, BatchSerializer, BatchDetailSerializer, StoreSerializer, StoreDetailSerializer, OrderSerializer, OrderDetailSerializer, ProcessedStoreSerializer, ProcessedBatchSerializer, ProcessedBatchDetailSerializer, ProcessedStoreDetailSerializer, CardingSerializer, DyeingSerializer, SpinningSerializer, ProcessingSerializer
 
 # class CsrfExemptSessionAuthentication(SessionAuthentication):
 #     def enforce_csrf(self, request):
@@ -923,6 +923,83 @@ class MarketView(APIView):
                 }
             })
     
-    
+class ProcessingView(APIView):
+    def get(self, request, pk=None, format=None):
+        if pk is not None:
+            processing = {}
+            processing_services = Processing.objects.filter(batch=pk).order_by('datetime')
 
+            for service in processing_services:
+                if service.process == "carding":
+                    carding_instance = Carding.objects.get(id=service.process_id)
+                    serializer = CardingSerializer(carding_instance)
+                    processing["carding"] = serializer.data
+                elif service.process == "dyeing":
+                    dyeing_instance = Dyeing.objects.get(id=service.process_id)
+                    serializer = DyeingSerializer(dyeing_instance)
+                    processing["dyeing"] = serializer.data
+                elif service.process == "spinning":
+                    spinning_instance = Spinning.objects.get(id=service.process_id)
+                    serializer = SpinningSerializer(spinning_instance)
+                    processing["spinning"] = serializer.data
+
+            return Response({
+                "success": True,
+                "message": f"Processing data for Batch {pk}",
+                "data": processing
+            })
+        else:
+            return Response({
+                "success": False,
+                "message": "Batch ID (pk) not provided",
+                "data": None
+            }, status=status.HTTP_400_BAD_REQUEST)
+    
+class CardingView(APIView):
+    def post(self, request, format=None):
+        serializer = CardingSerializer(data=request.data, context={'request': request})
+        if serializer.is_valid():
+            carding = serializer.save()
+            return Response({
+                "success": True,
+                "message": "Carding created successfully",
+                "data": serializer.data
+            }, status=status.HTTP_201_CREATED)
+        else:
+            return Response({
+                "success": False,
+                "errors": serializer.errors
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+class DyeingView(APIView):
+    def post(self, request, format=None):
+        serializer = DyeingSerializer(data=request.data, context={'request': request})
+        if serializer.is_valid():
+            dyeing = serializer.save()
+            return Response({
+                "success": True,
+                "message": "Dyeing created successfully",
+                "data": serializer.data
+            }, status=status.HTTP_201_CREATED)
+        else:
+            return Response({
+                "success": False,
+                "errors": serializer.errors
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+class SpinningView(APIView):
+    def post(self, request, format=None):
+        serializer = SpinningSerializer(data=request.data, context={'request': request})
+        if serializer.is_valid():
+            spinning = serializer.save()
+            return Response({
+                "success": True,
+                "message": "Spinning created successfully",
+                "data": serializer.data
+            }, status=status.HTTP_201_CREATED)
+        else:
+            return Response({
+                "success": False,
+                "errors": serializer.errors
+            }, status=status.HTTP_400_BAD_REQUEST)
         

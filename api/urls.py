@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import ProducerView, LoginView, RegisterView, IsLoginView, LogoutView, ProcessorView, CollectorView, ShearerView, ShearingRequestView, MyRequestView, RequestView, BatchView, MyBatchView, StoreView, MyStoreView, OrderView, SoldItemView, MyOrderView, ProcessedBatchView, MyProcessedBatchView, ProcessedStoreView, MyProcessedStoreView, MarketView, QRCodeView
+from .views import ProducerView, LoginView, RegisterView, IsLoginView, LogoutView, ProcessorView, CollectorView, ShearerView, ShearingRequestView, MyRequestView, RequestView, BatchView, MyBatchView, StoreView, MyStoreView, OrderView, SoldItemView, MyOrderView, ProcessedBatchView, MyProcessedBatchView, ProcessedStoreView, MyProcessedStoreView, MarketView, QRCodeView, CardingView, DyeingView, SpinningView, ProcessingView
 
 urlpatterns = [
     path('register', RegisterView.as_view(), name='regiser'),
@@ -32,6 +32,10 @@ urlpatterns = [
     path('processor/mybatch', MyProcessedBatchView.as_view(), name='mybatch'),
     path('processor/stores', ProcessedStoreView.as_view(), name='processed_store_list'),
     path('processor/mystore', MyProcessedStoreView.as_view(), name='my_store_list'),
+    path('processor/carding', CardingView.as_view(), name='carding'),
+    path('processor/dyeing', DyeingView.as_view(), name='dyeing'),
+    path('processor/spinning', SpinningView.as_view(), name='spinning'),
+    path('processor/processing/<int:pk>', ProcessingView.as_view(), name='processing'),
     path('processor/store/<int:pk>', ProcessedStoreView.as_view(), name='store_detail'),
     path('market', MarketView.as_view(), name='market_list'),
     path('raw_wool/<int:pk>', StoreView.as_view(), name='Product_details'),
