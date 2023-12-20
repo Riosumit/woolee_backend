@@ -632,6 +632,13 @@ class StoreView(APIView):
             "data": None
         })
     
+class MyStoreView(generics.ListAPIView):
+    serializer_class = StoreDetailSerializer
+    def get_queryset(self):
+        collector = Collector.objects.get(user=self.request.user)
+        queryset = Store.objects.filter(collector=collector)
+        return queryset
+    
 class OrderView(APIView):
     authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated]
@@ -855,6 +862,13 @@ class ProcessedStoreView(APIView):
             "data": None
         })
     
+class MyProcessedStoreView(generics.ListAPIView):
+    serializer_class = ProcessedStoreDetailSerializer
+    def get_queryset(self):
+        processor = Processor.objects.get(user=self.request.user)
+        queryset = ProcessedStore.objects.filter(processor=processor)
+        return queryset
+    
 class MarketView(APIView):
     def get(self, request, pk=None, format=None):
         if pk is not None:
@@ -877,12 +891,6 @@ class MarketView(APIView):
                 }
             })
     
-class MyStoreView(generics.ListAPIView):
-    serializer_class = StoreDetailSerializer
-    def get_queryset(self):
-        collector = Collector.objects.get(user=self.request.user)
-        queryset = Store.objects.filter(collector=collector)
-        return queryset
     
 # class SoldItemView(APIView):
 #     authentication_classes = [TokenAuthentication]
