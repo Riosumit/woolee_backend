@@ -81,11 +81,14 @@ WSGI_APPLICATION = 'woolee_backend.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'railway',
-        'USER': 'postgres',
-        'PASSWORD': 'Fg52c5A*ADdEa*DCadb*e2EDf4*1DDAA',
-        'HOST': 'monorail.proxy.rlwy.net',  
-        'PORT': '42655',
+        'NAME': 'woolee',
+        'USER': 'woolee_owner',
+        'PASSWORD': 'DGL3WfBnah8t',
+        'HOST': 'ep-wandering-scene-a1pjpuo7.ap-southeast-1.aws.neon.tech',
+        'PORT': '5432',
+        'OPTIONS': {
+            'sslmode': 'require',
+        },
     }
 }
 
