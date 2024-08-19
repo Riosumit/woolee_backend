@@ -9,6 +9,7 @@ urlpatterns = [
     # path('profile', ProducerProfileView.as_view(), name='producer_profile'),
     path('producers', ProducerView.as_view(), name='producer_list'),
     path('producer/<int:pk>', ProducerView.as_view(), name='producer_detail'),
+    path('producer/service/request', ServiceRequestView.as_view(), name='request_service'),
     path('producer/service/requests', MyRequestedServiceView.as_view(), name='my_service_requests_list'),
     path('collectors', CollectorView.as_view(), name='collector_list'),
     path('collector/<int:pk>', CollectorView.as_view(), name='collector_detail'),
